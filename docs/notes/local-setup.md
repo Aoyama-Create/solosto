@@ -50,9 +50,15 @@ confidence: low   # low | medium | high（scaffold前のため暫定。確定し
 - 最低限ほしい初期データ: 1ユーザー + 自動生成グループ、カテゴリ数件、recurring/spot 各数件、purchase_logs を2件以上持つ商品（サイクル確定の確認用）。
 - ★v2.1: `tracking_scope=category` のカテゴリ（例「赤ワイン」）＋ **異なる brand を持つ purchase_logs を2件以上**（例 MAPU→OSCO）。銘柄横断でカテゴリ単位サイクルが確定することの確認用。`tracking_scope=product` のカテゴリ（例「コスメ」）も両系統テスト用に用意。
 
-## 5. テスト実行
+## 5. 品質ゲート（lint / 型 / format）
+- **`pnpm check`** = `prettier --check .` + `eslint .` + `tsc --noEmit`（コード変更タスクの完了前に必ず通す。非破壊）。
+- 修正: 整形 `pnpm format` / lint `pnpm lint --fix` / 型は手修正。
+- 二段構え: ①ローカルは Claude Code の Stop フック（`scripts/claude-stop-check.sh`）が自動実行、②CI（`.github/workflows/ci.yml`）が push/PR で再検証。詳細は `code-check` スキル。
+- scaffold前は package.json 未整備のためフックは no-op。Phase 0 で `check` script を入れると自動有効化。
+
+## 6. テスト実行
 - ユニット（Vitest）: `[要確認]`（例 `pnpm test`）
 - E2E（Playwright）: `[要確認]`（例 `pnpm test:e2e`。初回 `pnpm playwright install`）
 
-## 6. つまずきメモ（随時追記）
+## 7. つまずきメモ（随時追記）
 - （まだなし。scaffold以降、ハマった点と解決をここに足していく）

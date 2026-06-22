@@ -114,6 +114,12 @@ COM-016（scope分岐解決）で集計単位を出し分け、COM-050 がこの
 `pnpm dev` / `pnpm build` / `pnpm test`（Vitest）/ `pnpm test:e2e`（Playwright）/ `pnpm supabase ...`
 詳細・接続情報は [docs/notes/local-setup.md](docs/notes/local-setup.md)。
 
+## 品質ゲート（必須）★
+コード変更を伴うタスクは、**完了前に必ず `pnpm check`（= `prettier --check` + `eslint` + `tsc --noEmit`）を通す**。整形は `pnpm format`、lint は `pnpm lint --fix`。詳細は `code-check` スキル。
+- 二段構え: ①**ローカル** Claude Code の Stop フック（`scripts/claude-stop-check.sh`）が edit タスク完了時に自動実行し、失敗なら完了をブロック。②**CI**（`.github/workflows/ci.yml`）が push/PR で `pnpm check`→`pnpm test`→`pnpm build` を再検証。
+- ゲートにテスト/ビルドは入れない（遅いので CI 側）。`pnpm check` は非破壊で CI と同一判定。テストは `pnpm test`。
+- 判断記録: [[decisions/2026-06-22-quality-gate-two-tier]] / [[shift-checks-left-ci-authoritative]]。
+
 ---
 
 ## コーディング規約

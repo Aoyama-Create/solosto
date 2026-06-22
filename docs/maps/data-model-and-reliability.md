@@ -19,6 +19,10 @@ solosto の設計の背骨。「真実の源をひとつに保ち、不確実な
 - [[decisions/2026-06-22-pull-first-notification-reliability]] — プル型主・信頼性3層
 - [[decisions/2026-06-22-tracking-scope-category-cycle]] — 追跡単位(tracking_scope)でカテゴリ単位サイクル（★v2.1）
 
+## 開発ワークフロー / 品質
+- [[shift-checks-left-ci-authoritative]] — チェックは手元へ速く寄せ、CIを最終権威に
+- [[decisions/2026-06-22-quality-gate-two-tier]] — 品質ゲートは Stop フック＋CI の二段構え
+
 ## UI / デザイン
 - [[design-system]] — 外観の真実（トークン・画面別要点。モック準拠）
 - [[surface-urgency-by-consumption]] — 緊急度は消費の進捗で見せ、緊急度で並べる

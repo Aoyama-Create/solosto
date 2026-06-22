@@ -39,5 +39,17 @@
       "Read(./.env.local)",
       "Read(./.env.*)"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/claude-stop-check.sh"
+          }
+        ]
+      }
+    ]
   }
 }
