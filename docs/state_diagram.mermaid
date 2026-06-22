@@ -1,0 +1,34 @@
+stateDiagram-v2
+    [*] --> R_pending: 定期品を新規登録 / リストに追加
+    [*] --> S_pending: 単発品を新規登録 / リストに追加
+
+    state "定期 (recurring)" as Recurring {
+        R_pending: pending\n買うべきリストに表示\n(まだ買ってない)
+        R_tracking: tracking\nサイクル自動稼働\n(購入実績2回以上)
+        R_idle: idle\nストック十分\n次回目安日を待つ
+
+        R_pending --> R_tracking: 「買った」を記録\n(2回目の購入で\nサイクル確定)
+        R_pending --> R_idle: 「買った」を記録\n(初回購入。まだ\nサイクル不明)
+        R_idle --> R_tracking: 2回目の購入で\nサイクル算出
+        R_tracking --> R_idle: 「買った」を記録\n→次回目安日を再計算
+        R_idle --> R_pending: next_order_date<=今日\n(自動でリスト復帰)
+        R_tracking --> R_pending: next_order_date<=今日\n(自動でリスト復帰)
+        R_idle --> R_pending: 手動でリストに追加
+    }
+
+    state "単発 (spot)" as Spot {
+        S_pending: pending\n買うべきリストに表示\n(まだ買ってない)
+        S_idle: idle\n買い終えて眠る\n(また必要なら手動復帰)
+
+        S_pending --> S_idle: 「買った」を記録\n(サイクル計算しない)
+        S_idle --> S_pending: 手動でリストに追加\n(また買う)
+    }
+
+    R_pending --> S_pending: 種別変更\n(定期→単発)
+    S_pending --> R_pending: 種別変更\n(単発→定期)
+    R_idle --> S_idle: 種別変更
+    S_idle --> R_idle: 種別変更
+
+    R_tracking --> [*]: 商品を論理削除
+    R_idle --> [*]: 商品を論理削除
+    S_idle --> [*]: 商品を論理削除

@@ -1,0 +1,37 @@
+---
+description: docs/ 知識層（第二の脳）の運用ルール。コードを触る全作業に適用。
+globs:
+alwaysApply: true
+---
+
+# docs/ 知識層（第二の脳）の運用ルール
+
+このリポジトリは `docs/` にコードと同じ履歴で管理する知識層を持つ。
+AI（Cursor / Claude Code）はここを文脈に読み、**自分で更新し続ける**こと。
+（同一ルールを `CLAUDE.md` にも記載。両者は常に同じ内容に保つ。）
+
+## 三層
+- `docs/decisions/` … 設計判断の記録（ADR）。**凍結・追記のみ。書き換えない**（覆すなら新 ADR で `supersedes`）。ファイル名 `YYYY-MM-DD-kebab-title.md`（同日複数は末尾 `-2`）。
+- `docs/notes/` … ADR から蒸留した普遍知識。**1ノート1概念**。`[[wikilink]]` で相互リンク。frontmatter に `created` / `tags` / `source` / `confidence`。
+- `docs/maps/` … テーマ別 MOC（目次・地図）。
+
+## 守ること
+1. **コードを読むときは `docs/` も必ず文脈に入れる**（特に `decisions/` と `notes/`）。
+2. 設計に影響する判断をしたら **`docs/decisions/` に ADR を1枚追加**（採用案・却下案・理由・トレードオフ）。
+3. ADR を追加したら、再利用可能な原則を **`docs/notes/` に1枚蒸留**（主語を一般化、`source` で元 ADR に紐付け）。
+4. 新規ノートは**既存 `notes/` を検索**し、関連を **`[[wikilink]]`** で必ず繋ぐ。
+5. **同じ原則が複数 ADR から出たら `confidence` を上げる**。
+6. 断定できない箇所は **`[要確認]`** を付す。
+7. ローカル環境構築・シーダー手順は **`docs/notes/local-setup.md` に集約**し、暗黙知が出たら必ず追記。
+
+## ドメインの絶対則（破ると静かに壊れる）
+- 商品3軸フラグ `type` / `status` / `is_notify_enabled` は独立。種別変更で `is_notify_enabled` を書き換えない。
+- 派生値（底値・平均・参考サイクル）は専用カラムを持たず `purchase_logs` から都度集計。底値=`MIN(unit_price)`。
+- `unit_price = price ÷ total_units`（`total_units = pack_quantity × units_per_pack`、`units_per_pack` は記録時点をコピー保存）。
+- サイクル: `per_unit_cycle_days = 購入間隔 ÷ 前回 total_units`、`next_order_date = 前回購入日 + per_unit_cycle_days × 今回 total_units`（recurring & auto のみ）。
+- 削除は論理削除（`deleted_at`）に統一。`spot × tracking` は存在しない。
+- 詳細は `CLAUDE.md` と `docs/references/v2.1/システム定義書_v2.md`。
+
+## 雛形 / 入口
+- 雛形: `docs/templates/`（adr.md / note.md / mock.md）
+- 歩き方: `docs/README.md`
