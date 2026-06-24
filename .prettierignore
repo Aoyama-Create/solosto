@@ -1,0 +1,22 @@
+# 既存 docs / 設計資料は整形対象にしない（日本語md・wikilink・デザインモックHTML）
+docs/
+**/*.md
+**/*.html
+
+# 生成物・ロック・依存
+node_modules/
+.next/
+out/
+build/
+coverage/
+test-results/
+playwright-report/
+pnpm-lock.yaml
+
+# Supabase ローカル成果物・型生成物
+supabase/
+lib/supabase/database.types.ts
+
+# その他
+public/sw.js
+CLAUDE.md

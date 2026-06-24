@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      # build 用ダミー（実 Supabase 接続は不要。クライアントは遅延生成）。
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key-for-ci-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # 品質ゲート（format:check + lint + typecheck）→ ユニット → ビルド。
+      # e2e（Playwright）は当面 CI に載せない（ローカル実行）。
+      - run: pnpm check
+      - run: pnpm test
+      - run: pnpm build

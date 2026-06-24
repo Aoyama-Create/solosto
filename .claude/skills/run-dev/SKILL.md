@@ -5,14 +5,14 @@ description: solosto をローカルで起動する手順（Supabaseローカル
 
 # ローカル起動
 
-> ⚠️ scaffold前のため一部コマンドは暫定。確定したら実値に更新する。詳細は [docs/notes/local-setup.md](../../../docs/notes/local-setup.md)。
+> 詳細・環境変数は [docs/notes/local-setup.md](../../../docs/notes/local-setup.md)。Docker を起動しておくこと。
 
 ## 手順
 ```bash
 pnpm install
 pnpm supabase start          # ローカルDB起動（出力の anon/service_role key, DB URL を .env.local へ）
 pnpm supabase db reset       # マイグレーション + seed 適用
-pnpm dev                     # 開発サーバ（暫定）
+pnpm dev                     # 開発サーバ http://localhost:3000
 ```
 
 ## 環境変数（.env.local）が揃っているか確認

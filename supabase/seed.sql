@@ -1,0 +1,22 @@
+-- solosto ローカルシード（骨子）
+-- ⚠️ auth ユーザー紐付け（profiles 連携）は Phase 1 で実装する。
+--    profiles は auth.users への FK があり、ローカルで auth ユーザーを作ってから紐づける必要があるため、
+--    現状はコメントの雛形のみ。`pnpm supabase db reset` 時に流れる（空でも無害）。
+--
+-- Phase 1 以降で、サインアップ時に group + profile を自動生成（COM-002）したうえで、
+-- 下記のような確認用データを投入する想定:
+--
+--   1) 固定グループ G を作成
+--   2) コスメ（tracking_scope=product）と 赤ワイン（tracking_scope=category）のカテゴリ
+--   3) recurring/spot の商品を数件
+--   4) purchase_logs を2件以上（サイクル確定の確認用）。
+--      ★v2.1: 赤ワインは銘柄違い（brand: MAPU → OSCO）で2件入れ、カテゴリ単位サイクル確定を確認。
+--
+-- 例（Phase 1 で group_id / product_id を実値にして有効化）:
+-- insert into public.categories (group_id, name, tracking_scope)
+--   values ('<G>', 'コスメ', 'product'), ('<G>', '赤ワイン', 'category');
+-- insert into public.products (group_id, category_id, name, type, base_unit, default_units_per_pack)
+--   values ('<G>', '<cat_cosme>', '化粧水（しっとり）', 'recurring', '本', 1);
+-- insert into public.purchase_logs (product_id, price, pack_quantity, units_per_pack, total_units, unit_price, brand, platform, purchased_at)
+--   values ('<wine_product>', 1280, 1, 1, 1, 1280, 'MAPU', 'amazon', now() - interval '30 days'),
+--          ('<wine_product>', 1180, 1, 1, 1, 1180, 'OSCO', 'official', now());

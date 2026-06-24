@@ -1,0 +1,16 @@
+:root {
+  /* デザイントークン（docs/design-system.md）。Mantine theme.other と一致。 */
+  --solo-surface: #fbf7f1;
+  --solo-ink: #3b342c;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background: var(--solo-surface);
+  color: var(--solo-ink);
+}

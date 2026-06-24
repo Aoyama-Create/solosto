@@ -1,6 +1,3 @@
-> ⚠️ **scaffold未完了（仮）**: アプリの実コードはまだ無い。本ファイルの「ディレクトリ構成」「開発コマンド」は暫定。
-> 確定タスク: 別プランの scaffold 完了時に、本マーカーを除去し、コマンド名・ディレクトリ構成・skills・`docs/notes/local-setup.md` の `[要確認]` を実値へ更新する（→ [実装ロードマップ Phase 0](docs/実装ロードマップ.md) の最終ステップ）。
-
 # solosto
 
 「そろそろ在庫が切れる」を防ぐ**個人用の在庫管理 PWA**。日用品・消耗品の在庫を管理し、「買い忘れ」と「無駄買い」を防ぐ。価格は**自分の過去の買値の中での相対評価**で判断する（リアルタイムEC価格は扱わない）。
@@ -104,15 +101,18 @@ COM-016（scope分岐解決）で集計単位を出し分け、COM-050 がこの
 - **トップ（SCR-030）は案C「在庫メーター型」を採用**（消費残量バー＋緊急度ソート）。案A/Bは不採用。→ [[decisions/2026-06-22-top-screen-stock-meter]] / [[surface-urgency-by-consumption]]。
 - 価格は「買い時！」等の判定ラベルを出さない（色＋データで示す。底値=緑/切れそう=赤橙）。
 
-## 想定ディレクトリ構成（暫定・scaffold時確定）
-- `app/` 画面（SCR-xxx）/ `app/actions/` Server Actions（API-xxx）
-- `lib/domain/` COM系の純粋ロジック（サイクル・単価・底値・状態遷移・日付TZ）+ Vitest
-- `lib/supabase/` クライアント・型 / `supabase/migrations/` スキーマ・RLS
-- `public/sw.js` service worker / `tests/` E2E
+## ディレクトリ構成
+- `app/(app)/` 画面（SCR-xxx。ボトムタブのルートグループ）/ `app/actions/` Server Actions（API-xxx。Phase 1+）
+- `app/layout.tsx`（Mantine/フォント/テーマ）/ `app/manifest.ts` / `app/globals.css`
+- `components/` 共有UI（`BottomNav` 等）
+- `lib/theme.ts` デザインテーマ / `lib/supabase/{server,client,middleware}.ts`・`database.types.ts`
+- `lib/common/` 共通基盤（COM-100〜104: date/number/errors/soft-delete/authz）/ `lib/domain/` ドメイン純粋ロジック（Phase 3+）
+- `supabase/migrations/` スキーマ・RLS / `supabase/seed.sql`
+- `public/sw.js` service worker（Phase 5）/ `tests/e2e/` Playwright / `middleware.ts` セッション更新
 
-## 開発コマンド（暫定・scaffold時確定）
-`pnpm dev` / `pnpm build` / `pnpm test`（Vitest）/ `pnpm test:e2e`（Playwright）/ `pnpm supabase ...`
-詳細・接続情報は [docs/notes/local-setup.md](docs/notes/local-setup.md)。
+## 開発コマンド
+`pnpm dev` / `pnpm build` / `pnpm test`（Vitest）/ `pnpm test:e2e`（Playwright）/ `pnpm check`（品質ゲート）/ `pnpm format` / `pnpm supabase start|db reset|gen types ...`
+詳細・接続情報は [docs/notes/local-setup.md](docs/notes/local-setup.md)。Node 20 / pnpm（corepack）。
 
 ## 品質ゲート（必須）★
 コード変更を伴うタスクは、**完了前に必ず `pnpm check`（= `prettier --check` + `eslint` + `tsc --noEmit`）を通す**。整形は `pnpm format`、lint は `pnpm lint --fix`。詳細は `code-check` スキル。
