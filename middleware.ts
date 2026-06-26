@@ -6,8 +6,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // 静的資産・画像・manifest・SW は除外。
+  // 静的資産・画像・manifest・SW・API（Cron 等は独自に CRON_SECRET 認証）は除外。
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|sw.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!api/|_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|sw.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

@@ -55,6 +55,7 @@ pnpm dev                            # http://localhost:3000
 > Phase 5a は **公開鍵のみ**使用（購読登録）。秘密鍵/Subject は 5b の送信で使う。
 > Push の手動確認（5a）: PWA を localhost で開き設定→通知ON→ DevTools `Application > Service Workers` の **Push** に `{"title":"テスト","body":"届いた","badgeCount":3}` を送ると通知＋App バッジが出る。
 > Push 送信の手動確認（5b・要 VAPID 3鍵）: 通知ON端末で設定→「**テスト通知を送る**」→ サーバから実際に届き、バッジに買うべき件数が出る。DevTools で購読解除してから送ると失効行が掃除されデバイス数が減る（COM-042）。
+> 通知バッチの手動実行（6b・Cron）: `pnpm dev` 起動後、`curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron`（`--env-file=.env.local` の値を使う）。秘密無し/不一致は 401。発火対象がいれば notifications に積まれサマリ JSON を返す。本番は Vercel Cron（`vercel.json` の `0 * * * *`）が毎時叩く。`notify_time` を現在時刻(JST)の時に合わせると発火する。
 
 ## 4. テストデータ準備（シーダー）
 
