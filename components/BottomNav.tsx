@@ -17,8 +17,16 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function BottomNav({ homeBadge = 0 }: { homeBadge?: number }) {
+export function BottomNav({
+  homeBadge = 0,
+  notifyBadge = 0,
+}: {
+  homeBadge?: number;
+  notifyBadge?: number;
+}) {
   const pathname = usePathname();
+  const badgeFor = (href: string): number =>
+    href === "/" ? homeBadge : href === "/notifications" ? notifyBadge : 0;
 
   return (
     <nav
@@ -37,6 +45,7 @@ export function BottomNav({ homeBadge = 0 }: { homeBadge?: number }) {
     >
       {TABS.map((tab) => {
         const active = isActive(pathname, tab.href);
+        const badge = badgeFor(tab.href);
         return (
           <Link
             key={tab.href}
@@ -57,7 +66,7 @@ export function BottomNav({ homeBadge = 0 }: { homeBadge?: number }) {
           >
             <span style={{ position: "relative", fontSize: 20, lineHeight: 1 }}>
               {tab.icon}
-              {tab.href === "/" && homeBadge > 0 && (
+              {badge > 0 && (
                 <span
                   style={{
                     position: "absolute",
@@ -75,7 +84,7 @@ export function BottomNav({ homeBadge = 0 }: { homeBadge?: number }) {
                     textAlign: "center",
                   }}
                 >
-                  {homeBadge > 99 ? "99+" : homeBadge}
+                  {badge > 99 ? "99+" : badge}
                 </span>
               )}
             </span>
