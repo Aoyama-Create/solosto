@@ -45,13 +45,111 @@ async function getOwnedProduct(
 ) {
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, type, cycle_mode, per_unit_cycle_days")
+    .select("id, name, type, cycle_mode, per_unit_cycle_days, category_id")
     .eq("id", productId)
     .eq("group_id", groupId)
     .is("deleted_at", null)
     .single();
   if (error || !data) throw new AppError("NOT_FOUND", "商品が見つかりません");
   return data;
+}
+
+// 購入/削除後の再計算を scope（COM-016）で分岐する。
+// product-scope → 商品のサイクル更新。category-scope → カテゴリの銘柄横断サイクル更新。
+async function recomputeAfterChange(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  groupId: string,
+  product: {
+    id: string;
+    type: string;
+    cycle_mode: string;
+    per_unit_cycle_days: number | null;
+    category_id: string | null;
+  },
+) {
+  if (product.category_id) {
+    const { data: cat } = await supabase
+      .from("categories")
+      .select("id, tracking_scope")
+      .eq("id", product.category_id)
+      .eq("group_id", groupId)
+      .is("deleted_at", null)
+      .single();
+    if (cat && cat.tracking_scope === "category") {
+      await recomputeCategoryCycle(supabase, groupId, cat.id);
+      return;
+    }
+  }
+  await recomputeProductCycle(supabase, groupId, product);
+}
+
+// ★v2.1 銘柄横断: カテゴリ配下の全 purchase_logs（全銘柄）からカテゴリのサイクルを再計算する。
+// サイクルは集計導出のため auto セマンティクスで next_order_date を算出して categories に保存
+// （categories に per_unit_cycle_days 列は無い＝専用カラムを持たない設計。category の手動サイクルは将来対応）。
+async function recomputeCategoryCycle(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  groupId: string,
+  categoryId: string,
+) {
+  // カテゴリ配下（未削除）商品の id 一覧。
+  const { data: prods, error: prodErr } = await supabase
+    .from("products")
+    .select("id")
+    .eq("group_id", groupId)
+    .eq("category_id", categoryId)
+    .is("deleted_at", null);
+  if (prodErr) throw new AppError("INTERNAL", prodErr.message);
+  const ids = (prods ?? []).map((p) => p.id);
+
+  let list: { purchased_at: string; total_units: number }[] = [];
+  if (ids.length > 0) {
+    const { data: logs, error } = await supabase
+      .from("purchase_logs")
+      .select("purchased_at, total_units")
+      .in("product_id", ids)
+      .order("purchased_at", { ascending: false })
+      .limit(2);
+    if (error) throw new AppError("INTERNAL", error.message);
+    list = logs ?? [];
+  }
+
+  const current =
+    list.length >= 1
+      ? { purchasedAt: new Date(list[0].purchased_at), totalUnits: Number(list[0].total_units) }
+      : null;
+  if (!current) {
+    const { error: upErr } = await supabase
+      .from("categories")
+      .update({ status: "idle", next_order_date: null })
+      .eq("id", categoryId)
+      .eq("group_id", groupId);
+    if (upErr) throw new AppError("INTERNAL", upErr.message);
+    return;
+  }
+  const prev =
+    list.length >= 2
+      ? { purchasedAt: new Date(list[1].purchased_at), totalUnits: Number(list[1].total_units) }
+      : null;
+
+  // カテゴリは type 概念を持たない＝recurring 固定、cycle は集計導出ゆえ auto で算出。
+  const result = computeCycleOnPurchase({
+    type: "recurring",
+    cycleMode: "auto",
+    prev,
+    current,
+  });
+
+  const { error: upErr } = await supabase
+    .from("categories")
+    .update({
+      status: result.status,
+      next_order_date: result.nextOrderDate
+        ? result.nextOrderDate.toISOString().slice(0, 10)
+        : null,
+    })
+    .eq("id", categoryId)
+    .eq("group_id", groupId);
+  if (upErr) throw new AppError("INTERNAL", upErr.message);
 }
 
 // 商品の最新2件の購入ログからサイクル/状態を再計算して products を更新する（product scope）。
@@ -143,9 +241,10 @@ export async function registerPurchase(input: PurchaseInput): Promise<Result<nul
     });
     if (insErr) throw new AppError("INTERNAL", insErr.message);
 
-    await recomputeProductCycle(supabase, groupId, product);
+    await recomputeAfterChange(supabase, groupId, product);
 
     revalidatePath("/products");
+    revalidatePath("/categories");
     revalidatePath(`/products/${input.productId}/edit`);
     revalidatePath(`/products/${input.productId}/history`);
     return ok(null);
@@ -207,9 +306,10 @@ export async function deletePurchase(id: string): Promise<Result<null>> {
     const { error: delErr } = await supabase.from("purchase_logs").delete().eq("id", id);
     if (delErr) throw new AppError("INTERNAL", delErr.message);
 
-    await recomputeProductCycle(supabase, groupId, product);
+    await recomputeAfterChange(supabase, groupId, product);
 
     revalidatePath("/products");
+    revalidatePath("/categories");
     revalidatePath(`/products/${log.product_id}/history`);
     revalidatePath(`/products/${log.product_id}/edit`);
     return ok(null);

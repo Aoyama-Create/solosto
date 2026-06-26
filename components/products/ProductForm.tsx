@@ -187,13 +187,26 @@ export function ProductForm({ categories, product }: Props) {
         </form>
       </Card>
 
-      {isEdit && <EditExtras product={product!} />}
+      {isEdit && (
+        <EditExtras
+          product={product!}
+          categoryScope={
+            categories.find((c) => c.id === product!.categoryId)?.trackingScope ?? "product"
+          }
+        />
+      )}
     </Stack>
   );
 }
 
 // 編集モード専用: 購入 / サイクル / スヌーズ / 通知ON-OFF / 削除（各々が個別に保存）。
-function EditExtras({ product }: { product: ProductDetail }) {
+function EditExtras({
+  product,
+  categoryScope,
+}: {
+  product: ProductDetail;
+  categoryScope: "product" | "category";
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -235,6 +248,15 @@ function EditExtras({ product }: { product: ProductDetail }) {
           <Group gap="xs">
             <Button
               component={Link}
+              href={`/products/${product.id}/price`}
+              size="xs"
+              variant="subtle"
+              color="gray"
+            >
+              価格
+            </Button>
+            <Button
+              component={Link}
               href={`/products/${product.id}/history`}
               size="xs"
               variant="subtle"
@@ -257,6 +279,8 @@ function EditExtras({ product }: { product: ProductDetail }) {
             name: product.name,
             defaultUnitsPerPack: product.defaultUnitsPerPack,
             purchaseUrl: product.purchaseUrl,
+            categoryId: product.categoryId,
+            categoryScope,
           }}
         />
       )}

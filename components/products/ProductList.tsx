@@ -176,6 +176,9 @@ export function ProductList({
             name: buying.name,
             defaultUnitsPerPack: buying.defaultUnitsPerPack,
             purchaseUrl: buying.purchaseUrl,
+            categoryId: buying.categoryId,
+            categoryScope:
+              categories.find((c) => c.id === buying.categoryId)?.trackingScope ?? "product",
           }}
         />
       )}

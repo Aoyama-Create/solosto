@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Group, Modal, NumberInput, Stack, Text, TextInput } from "@mantine/core";
 import { registerPurchase } from "@/app/actions/purchases";
+import { BrandPicker } from "@/components/prices/BrandPicker";
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -17,6 +18,8 @@ type Props = {
     name: string;
     defaultUnitsPerPack: number | null;
     purchaseUrl: string | null;
+    categoryId: string | null;
+    categoryScope: "product" | "category";
   };
 };
 
@@ -70,6 +73,16 @@ export function PurchaseModal({ opened, onClose, product }: Props) {
           <Alert color="alert" variant="light">
             {error}
           </Alert>
+        )}
+
+        {product.categoryScope === "category" && product.categoryId && (
+          <BrandPicker
+            categoryId={product.categoryId}
+            onPick={(b, url) => {
+              setBrand(b);
+              if (url) setPurchaseUrl(url);
+            }}
+          />
         )}
 
         <NumberInput
