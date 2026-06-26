@@ -27,7 +27,7 @@
 ### 3. 購入サイクルは個数ベース（ロット差を吸収）
 ```
 per_unit_cycle_days = 購入間隔（前回→今回の日数） ÷ 前回 total_units
-next_order_date     = 前回購入日 + (per_unit_cycle_days × 今回 total_units)
+next_order_date     = 今回購入日 + (per_unit_cycle_days × 今回 total_units)  ← 今回購入日が起点（[[decisions/2026-06-26-next-order-date-uses-purchase-date]]）
 total_units         = pack_quantity × units_per_pack
 ```
 - `type=recurring` かつ `cycle_mode=auto` のときのみ再計算（spot / manual では走らせない）。

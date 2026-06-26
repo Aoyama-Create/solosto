@@ -15,14 +15,15 @@ export type ProductListItem = {
   status: ProductStatus;
   isNotifyEnabled: boolean;
   notifySnoozedUntil: string | null;
+  nextOrderDate: string | null; // Phase 3a で購入により入る
   categoryId: string | null;
   categoryName: string | null; // 論理削除済みカテゴリは null 扱い
+  defaultUnitsPerPack: number | null; // 購入モーダルの初期値用
+  purchaseUrl: string | null;
 };
 
 export type ProductDetail = ProductListItem & {
-  purchaseUrl: string | null;
   baseUnit: string | null;
-  defaultUnitsPerPack: number | null;
   cycleMode: "auto" | "manual";
   perUnitCycleDays: number | null;
 };
@@ -53,7 +54,7 @@ export async function listProducts(filter?: {
     let query = supabase
       .from("products")
       .select(
-        "id, name, type, status, is_notify_enabled, notify_snoozed_until, category_id, categories(name, deleted_at)",
+        "id, name, type, status, is_notify_enabled, notify_snoozed_until, next_order_date, default_units_per_pack, purchase_url, category_id, categories(name, deleted_at)",
       )
       .eq("group_id", groupId)
       .is("deleted_at", null)
@@ -73,8 +74,11 @@ export async function listProducts(filter?: {
           status: p.status as ProductStatus,
           isNotifyEnabled: p.is_notify_enabled,
           notifySnoozedUntil: p.notify_snoozed_until,
+          nextOrderDate: p.next_order_date,
           categoryId: p.category_id,
           categoryName: cat && !cat.deleted_at ? cat.name : null,
+          defaultUnitsPerPack: p.default_units_per_pack,
+          purchaseUrl: p.purchase_url,
         };
       }),
     );
@@ -104,11 +108,12 @@ export async function getProduct(id: string): Promise<Result<ProductDetail>> {
       status: data.status as ProductStatus,
       isNotifyEnabled: data.is_notify_enabled,
       notifySnoozedUntil: data.notify_snoozed_until,
+      nextOrderDate: data.next_order_date,
       categoryId: data.category_id,
       categoryName: cat && !cat.deleted_at ? cat.name : null,
+      defaultUnitsPerPack: data.default_units_per_pack,
       purchaseUrl: data.purchase_url,
       baseUnit: data.base_unit,
-      defaultUnitsPerPack: data.default_units_per_pack,
       cycleMode: data.cycle_mode as "auto" | "manual",
       perUnitCycleDays: data.per_unit_cycle_days,
     });

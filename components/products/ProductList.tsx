@@ -7,6 +7,7 @@ import { Badge, Button, Card, Chip, Group, Stack, Text, Title } from "@mantine/c
 import { addProductToList, withdrawProduct, type ProductListItem } from "@/app/actions/products";
 import type { CategoryView } from "@/app/actions/categories";
 import type { ProductStatus, ProductType } from "@/lib/domain/product-state";
+import { PurchaseModal } from "@/components/purchases/PurchaseModal";
 
 const STATUS_LABEL: Record<ProductStatus, string> = {
   pending: "買うもの",
@@ -33,6 +34,7 @@ export function ProductList({
   const router = useRouter();
   const [filter, setFilter] = useState<string | null>(null); // null = すべて
   const [pending, startTransition] = useTransition();
+  const [buying, setBuying] = useState<ProductListItem | null>(null); // 購入モーダル対象
 
   const filtered = useMemo(
     () => (filter ? products.filter((p) => p.categoryId === filter) : products),
@@ -114,10 +116,18 @@ export function ProductList({
                       {p.categoryName}
                     </Text>
                   )}
+                  {p.nextOrderDate && (
+                    <Text size="xs" c="dimmed">
+                      次回 {p.nextOrderDate} ごろ
+                    </Text>
+                  )}
                 </Group>
               </Stack>
 
               <Group gap="xs" wrap="nowrap">
+                <Button size="xs" loading={pending} onClick={() => setBuying(p)}>
+                  買った
+                </Button>
                 {p.status === "idle" && (
                   <Button
                     size="xs"
@@ -139,6 +149,15 @@ export function ProductList({
                     引っ込める
                   </Button>
                 )}
+                <Button
+                  component={Link}
+                  href={`/products/${p.id}/history`}
+                  size="xs"
+                  variant="subtle"
+                  color="gray"
+                >
+                  履歴
+                </Button>
                 <Button component={Link} href={`/products/${p.id}/edit`} size="xs" variant="subtle">
                   編集
                 </Button>
@@ -147,6 +166,19 @@ export function ProductList({
           </Card>
         ))}
       </Stack>
+
+      {buying && (
+        <PurchaseModal
+          opened={!!buying}
+          onClose={() => setBuying(null)}
+          product={{
+            id: buying.id,
+            name: buying.name,
+            defaultUnitsPerPack: buying.defaultUnitsPerPack,
+            purchaseUrl: buying.purchaseUrl,
+          }}
+        />
+      )}
     </Stack>
   );
 }

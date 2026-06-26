@@ -32,6 +32,7 @@ import type { CategoryView } from "@/app/actions/categories";
 import type { ProductType } from "@/lib/domain/product-state";
 import { addDays } from "@/lib/common/date";
 import { buildPurchaseLink } from "@/lib/domain/deeplink";
+import { PurchaseModal } from "@/components/purchases/PurchaseModal";
 
 type Props = {
   categories: CategoryView[];
@@ -191,11 +192,12 @@ export function ProductForm({ categories, product }: Props) {
   );
 }
 
-// 編集モード専用: サイクル / スヌーズ / 通知ON-OFF / 削除（各々が個別に保存）。
+// 編集モード専用: 購入 / サイクル / スヌーズ / 通知ON-OFF / 削除（各々が個別に保存）。
 function EditExtras({ product }: { product: ProductDetail }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [buying, setBuying] = useState(false);
 
   const [cycleMode, setCycleMode] = useState<"auto" | "manual">(product.cycleMode);
   const [manualDays, setManualDays] = useState<number | "">(product.perUnitCycleDays ?? "");
@@ -220,6 +222,43 @@ function EditExtras({ product }: { product: ProductDetail }) {
         <Alert color={msg.ok ? "success" : "alert"} variant="light">
           {msg.text}
         </Alert>
+      )}
+
+      <Card shadow="xs" radius="md" p="md">
+        <Group justify="space-between">
+          <div>
+            <Text fw={500}>購入</Text>
+            <Text size="xs" c="dimmed">
+              「買った」で履歴に記録し、サイクルを更新します。
+            </Text>
+          </div>
+          <Group gap="xs">
+            <Button
+              component={Link}
+              href={`/products/${product.id}/history`}
+              size="xs"
+              variant="subtle"
+              color="gray"
+            >
+              履歴
+            </Button>
+            <Button size="xs" onClick={() => setBuying(true)}>
+              買った
+            </Button>
+          </Group>
+        </Group>
+      </Card>
+      {buying && (
+        <PurchaseModal
+          opened={buying}
+          onClose={() => setBuying(false)}
+          product={{
+            id: product.id,
+            name: product.name,
+            defaultUnitsPerPack: product.defaultUnitsPerPack,
+            purchaseUrl: product.purchaseUrl,
+          }}
+        />
       )}
 
       <Card shadow="xs" radius="md" p="md">
