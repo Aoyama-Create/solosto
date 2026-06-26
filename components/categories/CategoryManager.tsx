@@ -2,9 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   ActionIcon,
   Alert,
+  Badge,
   Button,
   Card,
   Group,
@@ -104,9 +106,26 @@ export function CategoryManager({ categories }: { categories: CategoryView[] }) 
                 </Button>
               </Group>
             ) : (
-              <Group justify="space-between">
-                <Text>{c.name}</Text>
-                <Group gap="xs">
+              <Group justify="space-between" wrap="nowrap">
+                <Group gap="xs" style={{ minWidth: 0 }}>
+                  <Text truncate>{c.name}</Text>
+                  <Badge
+                    size="sm"
+                    variant="light"
+                    color={c.trackingScope === "category" ? "primary" : "gray"}
+                  >
+                    {c.trackingScope === "category" ? "カテゴリ単位" : "商品単位"}
+                  </Badge>
+                </Group>
+                <Group gap="xs" wrap="nowrap">
+                  <Button
+                    component={Link}
+                    href={`/categories/${c.id}/tracking`}
+                    size="xs"
+                    variant="subtle"
+                  >
+                    追跡設定
+                  </Button>
                   <ActionIcon
                     variant="subtle"
                     aria-label="編集"

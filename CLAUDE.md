@@ -120,6 +120,11 @@ COM-016（scope分岐解決）で集計単位を出し分け、COM-050 がこの
 - ゲートにテスト/ビルドは入れない（遅いので CI 側）。`pnpm check` は非破壊で CI と同一判定。テストは `pnpm test`。
 - 判断記録: [[decisions/2026-06-22-quality-gate-two-tier]] / [[shift-checks-left-ci-authoritative]]。
 
+## プラン自己レビュー（必須）★
+プランを書いたら、**ExitPlanMode を呼ぶ前に必ず `plan-review` スキルの5観点で自己レビュー**し、見つけた Issues を潰した改善版にプランを直してから提示する。「問題なし」になるまで提示しない。
+- 観点: ①要件適合性 ②技術的妥当性 ③影響範囲 ④不足事項 ⑤実行可能性。出力: Review Result / Issues / Improved Plan。
+- 特に**スコープ境界（このフェーズで作る/作らない）**の明記漏れを必ず確認する。詳細は `plan-review` スキル。
+
 ---
 
 ## コーディング規約
