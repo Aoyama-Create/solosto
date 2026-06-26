@@ -17,7 +17,7 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function BottomNav() {
+export function BottomNav({ homeBadge = 0 }: { homeBadge?: number }) {
   const pathname = usePathname();
 
   return (
@@ -55,7 +55,30 @@ export function BottomNav() {
               fontWeight: active ? 700 : 500,
             }}
           >
-            <span style={{ fontSize: 20, lineHeight: 1 }}>{tab.icon}</span>
+            <span style={{ position: "relative", fontSize: 20, lineHeight: 1 }}>
+              {tab.icon}
+              {tab.href === "/" && homeBadge > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -6,
+                    right: -10,
+                    minWidth: 16,
+                    height: 16,
+                    padding: "0 4px",
+                    borderRadius: 999,
+                    background: "var(--mantine-color-alert-6)",
+                    color: "#fff",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    lineHeight: "16px",
+                    textAlign: "center",
+                  }}
+                >
+                  {homeBadge > 99 ? "99+" : homeBadge}
+                </span>
+              )}
+            </span>
             {tab.label}
           </Link>
         );
