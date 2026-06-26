@@ -1,5 +1,17 @@
-import { Placeholder } from "@/components/Placeholder";
+import { Container, Text } from "@mantine/core";
+import { getProfile } from "@/app/actions/profile";
+import { SettingsForm } from "@/components/settings/SettingsForm";
 
-export default function SettingsPage() {
-  return <Placeholder title="設定" scr="SCR-003/006 通知設定" />;
+export default async function SettingsPage() {
+  const res = await getProfile();
+
+  return (
+    <Container size="sm" py="lg">
+      {res.ok ? (
+        <SettingsForm profile={res.data} />
+      ) : (
+        <Text c="alert">設定の読み込みに失敗しました（{res.message}）。</Text>
+      )}
+    </Container>
+  );
 }

@@ -27,8 +27,37 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // セッションの更新（getUser でトークンをリフレッシュ）。Phase 1 で認可リダイレクトを足す。
-  await supabase.auth.getUser();
+  // セッションの更新（getUser でトークンをリフレッシュ）。
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // COM-001 認証ガード。
+  const path = request.nextUrl.pathname;
+  const isAuthPage = path === "/signin" || path === "/signup";
+
+  // 未ログインで保護パス → /signin。
+  if (!user && !isAuthPage) {
+    return redirectWithCookies(request, "/signin", supabaseResponse);
+  }
+  // ログイン済みで認証ページ → トップ。
+  if (user && isAuthPage) {
+    return redirectWithCookies(request, "/", supabaseResponse);
+  }
 
   return supabaseResponse;
+}
+
+// リダイレクト時はリフレッシュ済みセッションクッキーを必ず引き継ぐ（ループ/セッション喪失防止）。
+function redirectWithCookies(
+  request: NextRequest,
+  to: string,
+  from: NextResponse,
+): NextResponse {
+  const url = request.nextUrl.clone();
+  url.pathname = to;
+  url.search = "";
+  const response = NextResponse.redirect(url);
+  from.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+  return response;
 }

@@ -17,7 +17,8 @@
     "check": "prettier --check . && eslint . && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "seed": "node --env-file=.env.local scripts/seed-dev.mjs"
   },
   "dependencies": {
     "@mantine/core": "^7.15.3",

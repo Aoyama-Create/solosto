@@ -53,9 +53,10 @@ pnpm dev                            # http://localhost:3000
 
 ## 4. テストデータ準備（シーダー）
 
-- 仕組み: `supabase/seed.sql`（`pnpm supabase db reset` 時に流れる）。現状は**骨子のみ**。
-- `[要確認]` **auth ユーザー紐付け（profiles 連携）は Phase 1 で実装**（profiles は auth.users への FK のため、サインアップ/グループ自動生成 COM-002 と一緒に投入する）。
-- 投入したい確認データ（Phase 1 で有効化）: コスメ（tracking_scope=product）と赤ワイン（tracking_scope=category）、recurring/spot 各数件、purchase_logs を2件以上。★v2.1: 赤ワインは銘柄違い（brand: MAPU→OSCO）でカテゴリ単位サイクル確定を確認。
+- **`pnpm seed`**（= `node --env-file=.env.local scripts/seed-dev.mjs`）。service_role でテストユーザーを作成し（→ トリガーが group+profile 自動生成）、カテゴリ/商品/購入ログを投入。**冪等**（同 email を削除して作り直す）。要 Supabase 起動。
+  - ログイン: `test@solosto.local` / `password`。
+  - データ: コスメ（tracking_scope=product）と赤ワイン（tracking_scope=category）と日用品、recurring/spot、purchase_logs。★v2.1: 赤ワインは銘柄違い（brand: MAPU→OSCO）でカテゴリ単位サイクル確定を確認。
+- `supabase/seed.sql`（`db reset` 時に流れる）は骨子コメントのみ。実データは `pnpm seed` を使う（auth admin が必要なため SQL シードでは作らない）。
 
 ## 5. 品質ゲート（lint / 型 / format）
 
@@ -72,3 +73,6 @@ pnpm dev                            # http://localhost:3000
 
 - **supabase-js のバージョンピン**: `@supabase/supabase-js` は **2.45.4 に固定**。2.108 系は新しい typed-query エンジンが生成型に `__InternalSupabase` プロパティを要求し、Supabase CLI 2.107 が出力する型と噛み合わず、`.select()` が `never` に化ける。CLI が新フォーマットを出すようになったら supabase-js を上げて再生成する。
 - pnpm が無い場合は `corepack enable pnpm`（Node 20 同梱の corepack でシムが入る）。
+- **RLS の手前に GRANT が要る**: 生 SQL マイグレーションで作ったテーブルは、API ロール（authenticated/service_role）に DML 権限が**自動付与されない**。`pnpm seed` や認証ユーザーのクエリが `permission denied for table ...` で落ちる。→ `supabase/migrations/*_grants.sql` で `grant select,insert,update,delete ... to authenticated, service_role`（+ `alter default privileges`）を付与する。RLS は行レベルの可視範囲を引き続き支配（[[decisions/2026-06-25-group-bootstrap-via-trigger]] 補足）。
+- **Next.js が workspace root を誤検出**: ホームに `~/package-lock.json` があると dev 起動時に警告が出る（動作はする）。気になれば `next.config.ts` の `outputFileTracingRoot` を設定。
+- **コマンド自動承認（`.claude/settings.json`）**: `permissions.allow` のルールにマッチすると承認なしで実行される。ただし **パイプ/連結したコマンドは全サブコマンドが allow に載っていないと承認プロンプトが出る**（例 `pnpm ... | tail` は `tail` も必要）。そのため `tail/head/awk/sed/wc/echo/printf/docker/psql/curl/…` 等の補助コマンドを allow に追加済み。`deny`（`git push`・`rm -rf`・リモート Supabase・`.env` 読取）は維持。設定変更が効かない場合は `/config` を一度開くか再起動でリロード。
