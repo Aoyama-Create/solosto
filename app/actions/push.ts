@@ -4,6 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/common/authz";
 import { AppError, ok, toResult, type Result } from "@/lib/common/errors";
 import type { Json } from "@/lib/supabase/database.types";
+import { sendToSubscriptions } from "@/lib/push/send";
+import { buildNotificationPayload } from "@/lib/push/delivery";
+import { getBuyListCount } from "@/app/actions/buy-list";
+import type { PushSubscription } from "web-push";
 
 // PushSubscription の JSON（endpoint 必須）。フロントの sub.toJSON() を受ける。
 type SubscriptionJSON = { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
@@ -85,5 +89,58 @@ export async function getMyDeviceCount(): Promise<number> {
     return count ?? 0;
   } catch {
     return 0;
+  }
+}
+
+export type TestSendResult = { sent: number; failed: number; expired: number; remaining: number };
+
+// COM-040 テスト送信。自分の全購読デバイスへ Push を送り、失効（410/404）行を掃除（COM-042）する。
+// バッジ件数は買うべき件数（COM-043 源）を載せる。Phase 6 のバッチはこの送信部品を service_role で再利用する。
+export async function sendTestNotification(): Promise<Result<TestSendResult>> {
+  try {
+    const user = await requireUser();
+    const supabase = await createClient();
+
+    const { data: rows, error } = await supabase
+      .from("push_subscriptions")
+      .select("id, subscription")
+      .eq("user_id", user.id);
+    if (error) throw new AppError("INTERNAL", error.message);
+    if (!rows || rows.length === 0) {
+      throw new AppError("VALIDATION", "通知ONのデバイスがありません");
+    }
+
+    const badgeCount = await getBuyListCount();
+    const payload = buildNotificationPayload({
+      title: "solosto テスト通知",
+      body: badgeCount > 0 ? `買うべきものが ${badgeCount} 件あります` : "通知が正しく届いています",
+      url: "/",
+      badgeCount,
+    });
+
+    const subs = rows.map((r) => ({
+      endpoint: (r.subscription as { endpoint: string }).endpoint,
+      subscription: r.subscription as unknown as PushSubscription,
+    }));
+
+    const results = await sendToSubscriptions(subs, payload);
+    const expiredEndpoints = results.filter((r) => r.expired).map((r) => r.endpoint);
+
+    // 失効した購読行を削除（自分の行のみ・RLS）。
+    for (const endpoint of expiredEndpoints) {
+      await supabase
+        .from("push_subscriptions")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("subscription->>endpoint", endpoint);
+    }
+
+    const sent = results.filter((r) => r.ok).length;
+    const failed = results.filter((r) => !r.ok && !r.expired).length;
+    const remaining = rows.length - expiredEndpoints.length;
+
+    return ok({ sent, failed, expired: expiredEndpoints.length, remaining });
+  } catch (e) {
+    return toResult(e);
   }
 }

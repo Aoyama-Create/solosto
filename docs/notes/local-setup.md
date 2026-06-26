@@ -54,6 +54,7 @@ pnpm dev                            # http://localhost:3000
 > **生成（一度だけ）**: `npx web-push generate-vapid-keys` → 出力の Public/Private を上記へ。`VAPID_SUBJECT` は連絡先 mailto。
 > Phase 5a は **公開鍵のみ**使用（購読登録）。秘密鍵/Subject は 5b の送信で使う。
 > Push の手動確認（5a）: PWA を localhost で開き設定→通知ON→ DevTools `Application > Service Workers` の **Push** に `{"title":"テスト","body":"届いた","badgeCount":3}` を送ると通知＋App バッジが出る。
+> Push 送信の手動確認（5b・要 VAPID 3鍵）: 通知ON端末で設定→「**テスト通知を送る**」→ サーバから実際に届き、バッジに買うべき件数が出る。DevTools で購読解除してから送ると失効行が掃除されデバイス数が減る（COM-042）。
 
 ## 4. テストデータ準備（シーダー）
 

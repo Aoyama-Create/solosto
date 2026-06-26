@@ -11,7 +11,11 @@ import {
   unsubscribeHere,
 } from "@/lib/push/client";
 import { derivePushState, type PushState } from "@/lib/push/state";
-import { registerSubscription, unregisterSubscription } from "@/app/actions/push";
+import {
+  registerSubscription,
+  sendTestNotification,
+  unregisterSubscription,
+} from "@/app/actions/push";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
 
@@ -73,6 +77,32 @@ export function NotificationSettings({ deviceCount }: { deviceCount: number }) {
     });
   }
 
+  function sendTest() {
+    setMessage(null);
+    startTransition(async () => {
+      const res = await sendTestNotification();
+      if (!res.ok) {
+        setMessage({ ok: false, text: res.message });
+        return;
+      }
+      const { sent, expired, remaining } = res.data;
+      if (remaining === 0) {
+        setMessage({
+          ok: false,
+          text: "購読が無効化されていました。もう一度オンにしてください。",
+        });
+        await refresh();
+        router.refresh();
+        return;
+      }
+      setMessage({
+        ok: true,
+        text: `${sent}台へ送信しました${expired > 0 ? `（失効 ${expired}台を整理）` : ""}。`,
+      });
+      if (expired > 0) router.refresh();
+    });
+  }
+
   return (
     <Card shadow="sm" radius="lg" p="lg">
       <Stack gap="md">
@@ -116,7 +146,10 @@ export function NotificationSettings({ deviceCount }: { deviceCount: number }) {
         )}
 
         {state === "on" && (
-          <Group justify="flex-end">
+          <Group justify="space-between">
+            <Button variant="subtle" onClick={sendTest} loading={pending}>
+              テスト通知を送る
+            </Button>
             <Button variant="light" color="alert" onClick={turnOff} loading={pending}>
               このデバイスの通知をオフ
             </Button>
