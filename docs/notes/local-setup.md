@@ -45,11 +45,15 @@ pnpm dev                            # http://localhost:3000
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 接続    | ローカルは `http://127.0.0.1:54321` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | クライアント側   | `supabase status -o env` の ANON_KEY |
 | `SUPABASE_SERVICE_ROLE_KEY`     | バッチ/サーバ側  | 秘匿。クライアントへ出さない        |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`  | Push購読登録     | フロントへ公開可                    |
-| `VAPID_PRIVATE_KEY`             | Push送信署名     | 秘匿。本番は Vercel 環境変数         |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`  | Push購読登録(5a) | フロントへ公開可。subscribe で使用  |
+| `VAPID_PRIVATE_KEY`             | Push送信署名(5b) | 秘匿。本番は Vercel 環境変数         |
+| `VAPID_SUBJECT`                 | Push送信(5b)     | `mailto:あなた@example.com`         |
 | `CRON_SECRET`                   | Cron保護         | 秘匿                                |
 
 > VAPID鍵は一度生成したら固定（変更すると全購読が無効化）。詳細は [[decisions/2026-06-22-pull-first-notification-reliability]]。
+> **生成（一度だけ）**: `npx web-push generate-vapid-keys` → 出力の Public/Private を上記へ。`VAPID_SUBJECT` は連絡先 mailto。
+> Phase 5a は **公開鍵のみ**使用（購読登録）。秘密鍵/Subject は 5b の送信で使う。
+> Push の手動確認（5a）: PWA を localhost で開き設定→通知ON→ DevTools `Application > Service Workers` の **Push** に `{"title":"テスト","body":"届いた","badgeCount":3}` を送ると通知＋App バッジが出る。
 
 ## 4. テストデータ準備（シーダー）
 
