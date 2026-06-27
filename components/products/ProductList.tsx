@@ -116,6 +116,11 @@ export function ProductList({
                       {p.categoryName}
                     </Text>
                   )}
+                  {categories.find((c) => c.id === p.categoryId)?.trackingScope === "category" && (
+                    <Badge size="sm" variant="light" color="primary">
+                      銘柄横断
+                    </Badge>
+                  )}
                   {p.nextOrderDate && (
                     <Text size="xs" c="dimmed">
                       次回 {p.nextOrderDate} ごろ

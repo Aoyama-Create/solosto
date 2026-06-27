@@ -51,6 +51,10 @@ export function NotificationCenter({ notifications }: { notifications: Notificat
         )}
       </Group>
 
+      <Text c="dimmed" size="xs">
+        1週間より前の通知は自動で消えます。
+      </Text>
+
       {notifications.length === 0 && (
         <Text c="dimmed" py="xl" ta="center">
           通知はまだありません。
