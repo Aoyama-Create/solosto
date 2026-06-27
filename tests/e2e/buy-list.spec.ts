@@ -17,8 +17,11 @@ test("商品登録→トップに出る→買ったで消える", async ({ page 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByText("今は買うものなし")).toBeVisible();
 
-  // 商品登録（新規は pending → 買うものに乗る）
-  await page.goto("/products/new");
+  // 商品登録（新規は pending → 買うものに乗る）。signup 直後の goto は遷移と競合するため UI 導線で移動。
+  await page.getByRole("navigation").getByRole("link", { name: "商品" }).click();
+  await expect(page).toHaveURL(/\/products$/);
+  await page.getByRole("link", { name: /追加/ }).click();
+  await expect(page).toHaveURL(/\/products\/new$/);
   const name = `テスト買うもの_${Date.now()}`;
   await page.getByLabel("商品名").fill(name);
   await page.getByRole("button", { name: "登録する" }).click();

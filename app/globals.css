@@ -14,3 +14,33 @@ body {
   background: var(--solo-surface);
   color: var(--solo-ink);
 }
+
+/* レスポンシブシェル（Phase 8a）。モバイル=ボトムタブ / PC(≥768px)=左サイドバー。 */
+.side-nav {
+  display: none;
+}
+.app-shell-main {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 48em) {
+  .side-nav {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 240px;
+    background: var(--solo-surface);
+    border-right: 1px solid var(--mantine-color-gray-2);
+    z-index: 100;
+  }
+  .app-shell-main {
+    padding-bottom: 0;
+    padding-left: 240px;
+  }
+  .bottom-nav {
+    display: none;
+  }
+}

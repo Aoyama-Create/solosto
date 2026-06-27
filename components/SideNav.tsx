@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TABS, isActive } from "@/components/nav-tabs";
 
-// ボトムタブ5（design-system.md / モック準拠・モバイル）。アクティブ=primary、safe-area 確保。
-// PC（≥768px）では globals.css の `.bottom-nav` が非表示＝サイドバー（SideNav）へ切替。
-export function BottomNav({
+// PC（≥768px）用の左サイドバー。モバイルでは globals.css の `.side-nav` が非表示＝ボトムタブへ切替。
+// タブ定義は BottomNav と共通（components/nav-tabs.ts）。バッジは homeBadge/notifyBadge を流用。
+export function SideNav({
   homeBadge = 0,
   notifyBadge = 0,
 }: {
@@ -18,21 +18,18 @@ export function BottomNav({
     href === "/" ? homeBadge : href === "/notifications" ? notifyBadge : 0;
 
   return (
-    <nav
-      aria-label="メインナビゲーション"
-      className="bottom-nav"
-      style={{
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        display: "flex",
-        background: "var(--mantine-color-body)",
-        borderTop: "1px solid var(--mantine-color-gray-2)",
-        paddingBottom: "env(safe-area-inset-bottom)",
-        zIndex: 100,
-      }}
-    >
+    <nav className="side-nav" aria-label="メインナビゲーション">
+      <div
+        style={{
+          fontFamily: "'Zen Maru Gothic', sans-serif",
+          fontWeight: 700,
+          fontSize: 22,
+          color: "var(--mantine-color-brand-6)",
+          padding: "20px 20px 12px",
+        }}
+      >
+        solosto
+      </div>
       {TABS.map((tab) => {
         const active = isActive(pathname, tab.href);
         const badge = badgeFor(tab.href);
@@ -42,16 +39,17 @@ export function BottomNav({
             href={tab.href}
             aria-current={active ? "page" : undefined}
             style={{
-              flex: 1,
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
-              gap: 2,
-              padding: "8px 0 10px",
+              gap: 12,
+              margin: "2px 10px",
+              padding: "10px 14px",
+              borderRadius: 999,
               textDecoration: "none",
-              fontSize: 11,
-              color: active ? "var(--mantine-color-brand-6)" : "var(--mantine-color-dimmed)",
+              fontSize: 15,
+              color: active ? "var(--mantine-color-brand-7)" : "var(--mantine-color-dimmed)",
               fontWeight: active ? 700 : 500,
+              background: active ? "var(--mantine-color-brand-0)" : "transparent",
             }}
           >
             <span style={{ position: "relative", fontSize: 20, lineHeight: 1 }}>
