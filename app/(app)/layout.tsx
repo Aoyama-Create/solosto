@@ -1,5 +1,6 @@
 import { BottomNav } from "@/components/BottomNav";
 import { BadgeSync } from "@/components/BadgeSync";
+import { InstallGuide } from "@/components/pwa/InstallGuide";
 import { getBuyListCount } from "@/app/actions/buy-list";
 import { getUnreadCount } from "@/app/actions/notifications";
 
@@ -10,6 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div style={{ minHeight: "100dvh", paddingBottom: "calc(64px + env(safe-area-inset-bottom))" }}>
       <BadgeSync count={buyCount} />
+      <InstallGuide />
       {children}
       <BottomNav homeBadge={buyCount} notifyBadge={unreadCount} />
     </div>

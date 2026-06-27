@@ -12,23 +12,39 @@ import {
 } from "@/lib/push/client";
 import { derivePushState, type PushState } from "@/lib/push/state";
 import {
+  listMyDevices,
   registerSubscription,
   sendTestNotification,
   unregisterSubscription,
+  type MyDevice,
 } from "@/app/actions/push";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
 
-export function NotificationSettings({ deviceCount }: { deviceCount: number }) {
+function relativeTime(iso: string | null): string {
+  if (!iso) return "未受信";
+  const min = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (min < 1) return "たった今";
+  if (min < 60) return `${min}分前`;
+  const hour = Math.floor(min / 60);
+  if (hour < 24) return `${hour}時間前`;
+  return `${Math.floor(hour / 24)}日前`;
+}
+
+export function NotificationSettings() {
   const router = useRouter();
   const [state, setState] = useState<PushState | null>(null); // null=判定前（SSR/初回）
+  const [devices, setDevices] = useState<MyDevice[]>([]);
+  const [localEndpoint, setLocalEndpoint] = useState<string | null>(null);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
-  // マウント後にブラウザの事実を集めて状態判定（COM-003）。
+  // マウント後にブラウザの事実とサーバ購読一覧を集める（COM-003 ＋ 失効検知）。
   async function refresh() {
     const supported = isPushSupported();
     const sub = supported ? await getLocalSubscription() : null;
+    setLocalEndpoint(sub?.endpoint ?? null);
+    setDevices(await listMyDevices());
     setState(
       derivePushState({
         supported,
@@ -37,6 +53,12 @@ export function NotificationSettings({ deviceCount }: { deviceCount: number }) {
       }),
     );
   }
+
+  // 失効検知: ローカルは購読中なのにサーバ一覧に当該 endpoint が無い＝サーバ側で失効掃除済み。
+  const stalled =
+    !!localEndpoint && devices.length > 0 && !devices.some((d) => d.endpoint === localEndpoint);
+  // ローカル購読ありだがサーバが全消滅（0件）も止まっている扱い。
+  const allGone = !!localEndpoint && devices.length === 0;
 
   useEffect(() => {
     void refresh();
@@ -127,6 +149,24 @@ export function NotificationSettings({ deviceCount }: { deviceCount: number }) {
           </Alert>
         )}
 
+        {(stalled || allGone) && (
+          <Alert color="alert" variant="light" title="通知が止まっています">
+            <Stack gap="xs">
+              <Text size="sm">
+                このデバイスの購読が無効になりました。もう一度オンにしてください。
+              </Text>
+              <Button
+                size="xs"
+                onClick={turnOn}
+                loading={pending}
+                style={{ alignSelf: "flex-start" }}
+              >
+                通知を再開する
+              </Button>
+            </Stack>
+          </Alert>
+        )}
+
         {state === null && (
           <Text c="dimmed" size="sm">
             状態を確認しています…
@@ -169,10 +209,29 @@ export function NotificationSettings({ deviceCount }: { deviceCount: number }) {
           </Alert>
         )}
 
-        {deviceCount > 0 && (
-          <Text c="dimmed" size="xs">
-            通知ONのデバイス: {deviceCount}台
-          </Text>
+        {devices.length > 0 && (
+          <Stack gap={6}>
+            <Text size="xs" c="dimmed">
+              通知ONのデバイス（{devices.length}台）
+            </Text>
+            {devices.map((d) => (
+              <Group key={d.id} justify="space-between" wrap="nowrap">
+                <Text size="sm" truncate style={{ minWidth: 0 }}>
+                  {d.deviceLabel || "不明なデバイス"}
+                </Text>
+                <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
+                  {d.endpoint === localEndpoint && (
+                    <Badge size="xs" color="success" variant="light">
+                      このデバイス
+                    </Badge>
+                  )}
+                  <Text size="xs" c="dimmed">
+                    {relativeTime(d.lastUsedAt)}
+                  </Text>
+                </Group>
+              </Group>
+            ))}
+          </Stack>
         )}
       </Stack>
     </Card>

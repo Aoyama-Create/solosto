@@ -92,6 +92,36 @@ export async function getMyDeviceCount(): Promise<number> {
   }
 }
 
+export type MyDevice = {
+  id: string;
+  deviceLabel: string | null;
+  lastUsedAt: string | null;
+  endpoint: string;
+};
+
+// 自分の購読デバイス一覧（SCR-003/006 デバイス一覧・失効検知用）。最終受信が新しい順。
+// endpoint は本人データ＝「このデバイス」判定にクライアントへ返してよい。
+export async function listMyDevices(): Promise<MyDevice[]> {
+  try {
+    const user = await requireUser();
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("push_subscriptions")
+      .select("id, device_label, last_used_at, subscription")
+      .eq("user_id", user.id)
+      .order("last_used_at", { ascending: false, nullsFirst: false });
+    if (error) return [];
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      deviceLabel: r.device_label,
+      lastUsedAt: r.last_used_at,
+      endpoint: (r.subscription as { endpoint: string }).endpoint,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export type TestSendResult = { sent: number; failed: number; expired: number; remaining: number };
 
 // COM-040 テスト送信。自分の全購読デバイスへ Push を送り、失効（410/404）行を掃除（COM-042）する。
