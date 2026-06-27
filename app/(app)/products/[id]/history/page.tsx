@@ -8,7 +8,7 @@ export default async function PurchaseHistoryPage({ params }: { params: Promise<
   const [product, logs] = await Promise.all([getProduct(id), listPurchases(id)]);
 
   return (
-    <Container size="sm" py="lg">
+    <Container size="lg" py="lg">
       {product.ok && logs.ok ? (
         <PurchaseHistory productId={id} productName={product.data.name} logs={logs.data} />
       ) : (

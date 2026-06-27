@@ -14,8 +14,11 @@ test("2回購入でサイクルが確定し履歴に残る", async ({ page }) =>
   await page.getByRole("button", { name: "登録する" }).click();
   await expect(page).toHaveURL(/\/$/);
 
-  // 商品登録（定期）
-  await page.goto("/products/new");
+  // 商品登録（定期）。signup 直後の goto は遷移と競合するため UI 導線で移動。
+  await page.getByRole("navigation").getByRole("link", { name: "商品" }).click();
+  await expect(page).toHaveURL(/\/products$/);
+  await page.getByRole("link", { name: /追加/ }).click();
+  await expect(page).toHaveURL(/\/products\/new$/);
   const name = `テスト定期_${Date.now()}`;
   await page.getByLabel("商品名").fill(name);
   await page.getByRole("button", { name: "登録する" }).click();

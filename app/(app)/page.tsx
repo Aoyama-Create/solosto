@@ -13,7 +13,7 @@ export default async function HomePage() {
   }).format(new Date());
 
   return (
-    <Container size="sm" py="lg">
+    <Container size="lg" py="lg">
       {res.ok ? (
         <BuyList todayLabel={todayLabel} data={res.data} />
       ) : (

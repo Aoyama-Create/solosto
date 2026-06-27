@@ -5,12 +5,14 @@ import Link from "next/link";
 import {
   Anchor,
   Badge,
+  Box,
   Button,
   Card,
   Group,
   Menu,
   Progress,
   Stack,
+  Table,
   Text,
   Title,
 } from "@mantine/core";
@@ -33,6 +35,10 @@ function remainingLabel(item: BuyListItem): string {
   if (item.daysRemaining < 0) return `予定を${-item.daysRemaining}日超過`;
   if (item.daysRemaining === 0) return "今日まで";
   return `あと${item.daysRemaining}日`;
+}
+
+function remainingColor(level: BuyListItem["level"]): string {
+  return level === "overdue" ? "alert" : level === "soon" ? "primary" : "dimmed";
 }
 
 export function BuyList({ todayLabel, data }: { todayLabel: string; data: BuyListData }) {
@@ -61,6 +67,42 @@ export function BuyList({ todayLabel, data }: { todayLabel: string; data: BuyLis
 
   const urgent = data.items.filter((i) => i.level === "overdue" || i.level === "soon");
 
+  // 「買った」/銘柄選ぶの導線。カード（モバイル）・テーブル（PC）双方で共有。
+  function renderAction(item: BuyListItem) {
+    if (item.kind === "product") {
+      return (
+        <Button size="xs" onClick={() => buyProduct(item)}>
+          買った
+        </Button>
+      );
+    }
+    if (item.brandProducts.length === 1) {
+      return (
+        <Button size="xs" onClick={() => buyBrand(item, item.brandProducts[0])}>
+          買った
+        </Button>
+      );
+    }
+    return (
+      <Menu position="bottom-end" withinPortal>
+        <Menu.Target>
+          <Button size="xs">銘柄を選ぶ</Button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          {item.brandProducts.map((b) => (
+            <Menu.Item key={b.id} onClick={() => buyBrand(item, b)}>
+              {b.name} を買った
+            </Menu.Item>
+          ))}
+          <Menu.Divider />
+          <Menu.Item component={Link} href="/products/new">
+            別の銘柄を追加…
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    );
+  }
+
   return (
     <Stack gap="md">
       <div>
@@ -84,105 +126,148 @@ export function BuyList({ todayLabel, data }: { todayLabel: string; data: BuyLis
           </Stack>
         </Card>
       ) : (
-        <Stack gap="xs">
-          {urgent.length > 0 && (
-            <Text size="sm" fw={600} c="alert">
-              もう切れてる・切れる直前
-            </Text>
-          )}
-          {data.items.map((item) => (
-            <Card key={`${item.kind}:${item.id}`} shadow="xs" radius="md" p="sm">
-              <Stack gap={8}>
-                <Group justify="space-between" wrap="nowrap">
-                  <Group gap="xs" style={{ minWidth: 0 }}>
-                    <Text fw={600} truncate>
-                      {item.name}
-                    </Text>
-                    {item.isCategoryScope && (
-                      <Badge size="sm" variant="light" color="primary">
-                        銘柄横断
-                      </Badge>
-                    )}
-                  </Group>
-                  <Text
-                    size="sm"
-                    fw={600}
-                    c={
-                      item.level === "overdue"
-                        ? "alert"
-                        : item.level === "soon"
-                          ? "primary"
-                          : "dimmed"
-                    }
-                  >
-                    {remainingLabel(item)}
-                  </Text>
-                </Group>
-
-                {item.fillRatio !== null && (
-                  <Progress
-                    value={item.fillRatio * 100}
-                    color={METER_COLOR[item.level]}
-                    size="md"
-                    radius="xl"
-                  />
-                )}
-
-                <Group justify="space-between">
-                  <Group gap="sm">
-                    {item.cycleWindowDays != null && (
-                      <Text size="xs" c="dimmed">
-                        サイクル 約{item.cycleWindowDays}日
+        <>
+          {/* モバイル: カード */}
+          <Box hiddenFrom="sm">
+            <Stack gap="xs">
+              {urgent.length > 0 && (
+                <Text size="sm" fw={600} c="alert">
+                  もう切れてる・切れる直前
+                </Text>
+              )}
+              {data.items.map((item) => (
+                <Card key={`${item.kind}:${item.id}`} shadow="xs" radius="md" p="sm">
+                  <Stack gap={8}>
+                    <Group justify="space-between" wrap="nowrap">
+                      <Group gap="xs" style={{ minWidth: 0 }}>
+                        <Text fw={600} truncate>
+                          {item.name}
+                        </Text>
+                        {item.isCategoryScope && (
+                          <Badge size="sm" variant="light" color="primary">
+                            銘柄横断
+                          </Badge>
+                        )}
+                      </Group>
+                      <Text size="sm" fw={600} c={remainingColor(item.level)}>
+                        {remainingLabel(item)}
                       </Text>
-                    )}
-                    {item.categoryName && !item.isCategoryScope && (
-                      <Text size="xs" c="dimmed">
-                        {item.categoryName}
-                      </Text>
-                    )}
-                    {item.link && (
-                      <Anchor
-                        href={item.link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        size="xs"
-                      >
-                        {item.link.label}
-                      </Anchor>
-                    )}
-                  </Group>
+                    </Group>
 
-                  {item.kind === "product" ? (
-                    <Button size="xs" onClick={() => buyProduct(item)}>
-                      買った
-                    </Button>
-                  ) : item.brandProducts.length === 1 ? (
-                    <Button size="xs" onClick={() => buyBrand(item, item.brandProducts[0])}>
-                      買った
-                    </Button>
-                  ) : (
-                    <Menu position="bottom-end" withinPortal>
-                      <Menu.Target>
-                        <Button size="xs">銘柄を選ぶ</Button>
-                      </Menu.Target>
-                      <Menu.Dropdown>
-                        {item.brandProducts.map((b) => (
-                          <Menu.Item key={b.id} onClick={() => buyBrand(item, b)}>
-                            {b.name} を買った
-                          </Menu.Item>
-                        ))}
-                        <Menu.Divider />
-                        <Menu.Item component={Link} href="/products/new">
-                          別の銘柄を追加…
-                        </Menu.Item>
-                      </Menu.Dropdown>
-                    </Menu>
-                  )}
-                </Group>
-              </Stack>
-            </Card>
-          ))}
-        </Stack>
+                    {item.fillRatio !== null && (
+                      <Progress
+                        value={item.fillRatio * 100}
+                        color={METER_COLOR[item.level]}
+                        size="md"
+                        radius="xl"
+                      />
+                    )}
+
+                    <Group justify="space-between">
+                      <Group gap="sm">
+                        {item.cycleWindowDays != null && (
+                          <Text size="xs" c="dimmed">
+                            サイクル 約{item.cycleWindowDays}日
+                          </Text>
+                        )}
+                        {item.categoryName && !item.isCategoryScope && (
+                          <Text size="xs" c="dimmed">
+                            {item.categoryName}
+                          </Text>
+                        )}
+                        {item.link && (
+                          <Anchor
+                            href={item.link.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            size="xs"
+                          >
+                            {item.link.label}
+                          </Anchor>
+                        )}
+                      </Group>
+                      {renderAction(item)}
+                    </Group>
+                  </Stack>
+                </Card>
+              ))}
+            </Stack>
+          </Box>
+
+          {/* PC: テーブル */}
+          <Box visibleFrom="sm">
+            <Table verticalSpacing="sm" highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>商品</Table.Th>
+                  <Table.Th>残り</Table.Th>
+                  <Table.Th>サイクル</Table.Th>
+                  <Table.Th>カテゴリ</Table.Th>
+                  <Table.Th>購入先</Table.Th>
+                  <Table.Th />
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {data.items.map((item) => (
+                  <Table.Tr key={`${item.kind}:${item.id}`}>
+                    <Table.Td>
+                      <Group gap="xs" wrap="nowrap">
+                        <Text fw={600}>{item.name}</Text>
+                        {item.isCategoryScope && (
+                          <Badge size="sm" variant="light" color="primary">
+                            銘柄横断
+                          </Badge>
+                        )}
+                      </Group>
+                    </Table.Td>
+                    <Table.Td>
+                      <Stack gap={4} style={{ minWidth: 120 }}>
+                        <Text size="sm" fw={600} c={remainingColor(item.level)}>
+                          {remainingLabel(item)}
+                        </Text>
+                        {item.fillRatio !== null && (
+                          <Progress
+                            value={item.fillRatio * 100}
+                            color={METER_COLOR[item.level]}
+                            size="sm"
+                            radius="xl"
+                          />
+                        )}
+                      </Stack>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c="dimmed">
+                        {item.cycleWindowDays != null ? `約${item.cycleWindowDays}日` : "—"}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c="dimmed">
+                        {item.isCategoryScope ? "—" : (item.categoryName ?? "—")}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      {item.link ? (
+                        <Anchor
+                          href={item.link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          size="sm"
+                        >
+                          {item.link.label}
+                        </Anchor>
+                      ) : (
+                        <Text size="sm" c="dimmed">
+                          —
+                        </Text>
+                      )}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: "right" }}>{renderAction(item)}</Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Box>
+        </>
       )}
 
       {target && (
