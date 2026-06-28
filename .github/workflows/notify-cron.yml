@@ -1,0 +1,24 @@
+name: notify-cron
+
+# Vercel Hobby は毎時 Cron 不可のため、外部スケジューラとして GitHub Actions から
+# 毎時 /api/cron を叩く（BAT-001 通知＋BAT-002 クリーンアップ）。
+# 必要な Repository secrets: APP_URL（本番URL, 例 https://solosto-xxx.vercel.app）/ CRON_SECRET。
+# 注: GitHub の schedule は数分〜遅延・たまにスキップあり。本アプリは「時」粒度で notify_time 判定するため
+#     同じ時内に発火すれば問題ない（分の遅延は許容）。確実性を最優先するなら cron-job.org 等を併用。
+
+on:
+  schedule:
+    - cron: "0 * * * *" # 毎時0分（UTC）
+  workflow_dispatch: {} # 手動実行も可
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hit /api/cron
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -X GET "$APP_URL/api/cron" \
+            -H "Authorization: Bearer $CRON_SECRET"

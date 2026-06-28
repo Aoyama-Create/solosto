@@ -83,7 +83,7 @@ COM-016（scope分岐解決）で集計単位を出し分け、COM-050 がこの
 - **Frontend**: Next.js 15（App Router）+ Mantine v7
 - **Backend**: Next.js Server Actions + Supabase（Auth / DB(PostgreSQL) / Storage）
 - **Deploy**: Vercel
-- **バッチ**: Vercel Cron（**毎時** + `notify_time` 一致判定、**Node.js Runtime**）。BAT-001（通知）と BAT-002（クリーンアップ）は Vercel 無料枠の Cron 1つ制限のため**1つの Cron に統合**。
+- **バッチ**: `/api/cron`（**毎時** + `notify_time` 一致判定、**Node.js Runtime**、`CRON_SECRET` 保護）。BAT-001（通知）と BAT-002（クリーンアップ）を**1つのエンドポイントに統合**。トリガは**ホストから分離**: 本番(Vercel Hobby)は GitHub Actions（`.github/workflows/notify-cron.yml`）から毎時叩く／Vercel Pro なら `vercel.json` の `crons` に戻して Vercel Cron でも可。詳細 [docs/notes/deploy.md](docs/notes/deploy.md)・[[decisions/2026-06-28-cron-via-external-scheduler-on-hobby]]。
 - **Push**: web-push（Node.js）。VAPID 鍵は一度だけ生成し固定（変更で全購読失効）。公開鍵はフロント、**秘密鍵は Vercel 環境変数**。
 - **パッケージマネージャ**: pnpm / **言語**: TypeScript / **テスト**: Vitest（ロジック）+ Playwright（E2E）。
 

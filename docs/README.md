@@ -17,5 +17,6 @@
 
 ## 入り口
 - これから参加する人 → notes/local-setup.md
+- 本番公開する → notes/deploy.md（Vercel ＋ Supabase Cloud の手順書）
 - 設計の「なぜ」 → decisions/ を検索
 - 再利用できる学び → notes/
