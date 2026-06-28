@@ -100,10 +100,15 @@ Vercel Pro なら外部スケジューラ不要。リポジトリ直下に `verc
 ```
 Vercel が毎時 `Authorization: Bearer $CRON_SECRET` 付きで自動実行する（GitHub Actions 側は無効化してよい）。
 
-## 6. Supabase の本番 URL 許可（Auth リダイレクト）
-Supabase ダッシュボード **Authentication → URL Configuration**:
-- **Site URL** に本番 URL（`https://solosto-xxx.vercel.app`）を設定。
-- メール確認を使う場合は **Redirect URLs** にも追加（本アプリはメール/パスワードのみ。確認メールを使わない設定なら不要）。
+## 6. Supabase の Auth 設定（**必須**）
+> ⚠️ `supabase db push` は **Auth 設定を Cloud に反映しない**（原則: [[managed-config-outside-migrations]]）。ローカル `config.toml` は `enable_confirmations = false` だが、**Cloud は既定で「メール確認 ON」**。そのままだと signup 時に確認メール送信 →「**email rate limit exceeded**」、かつ即セッションが張られず `/` に遷移しない（本アプリは確認メール導線を持たない）。
+
+1. **Authentication → Providers → Email** → **「Confirm email」を OFF** → Save（ローカルと同じ＝確認なし運用）。
+   - 将来オンにするなら **カスタム SMTP**（SendGrid 等）必須。内蔵メールは数通/時で実用不可。
+2. **Authentication → URL Configuration**:
+   - **Site URL** に本番 URL（`https://solosto-xxx.vercel.app`）。
+   - （確認メールを使う場合のみ Redirect URLs も追加。確認 OFF なら不要。）
+3. 確認 ON 時に作った未確認ユーザーは **Authentication → Users** で confirm するか、作り直す。
 
 ## 7. 本番スモーク（手動確認）
 1. 本番 URL を **iPhone Safari** で開く → **共有 → ホーム画面に追加**（PWA 化。InstallGuide バナーも出る）。
