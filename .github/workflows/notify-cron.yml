@@ -20,5 +20,9 @@ jobs:
           APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          curl -fsS -X GET "$APP_URL/api/cron" \
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::error::APP_URL / CRON_SECRET secrets が未設定です。Settings → Secrets and variables → Actions（Secrets タブ）で Repository secret として登録してください。"
+            exit 1
+          fi
+          curl -fsS -X GET "${APP_URL%/}/api/cron" \
             -H "Authorization: Bearer $CRON_SECRET"
