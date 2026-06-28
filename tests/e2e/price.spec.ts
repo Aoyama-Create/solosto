@@ -14,7 +14,11 @@ test("2回購入で価格比較に底値/平均が出る", async ({ page }) => {
   await page.getByRole("button", { name: "登録する" }).click();
   await expect(page).toHaveURL(/\/$/);
 
-  await page.goto("/products/new");
+  // signup 直後の goto は遷移と競合するため UI 導線で移動。
+  await page.getByRole("navigation").getByRole("link", { name: "商品" }).click();
+  await expect(page).toHaveURL(/\/products$/);
+  await page.getByRole("link", { name: /追加/ }).click();
+  await expect(page).toHaveURL(/\/products\/new$/);
   const name = `テスト価格_${Date.now()}`;
   await page.getByLabel("商品名").fill(name);
   await page.getByRole("button", { name: "登録する" }).click();
@@ -35,6 +39,7 @@ test("2回購入で価格比較に底値/平均が出る", async ({ page }) => {
   // 価格ビューへ（編集 → 価格）
   await row.getByRole("link", { name: "編集" }).click();
   await page.getByRole("link", { name: "価格" }).click();
-  await expect(page.getByText("底値 / 個")).toBeVisible();
+  // 価格ビューはチャート同梱で dev 初回コンパイルが重いため余裕を持たせる。
+  await expect(page.getByText("底値 / 個")).toBeVisible({ timeout: 20000 });
   await expect(page.getByText("平均 / 個")).toBeVisible();
 });

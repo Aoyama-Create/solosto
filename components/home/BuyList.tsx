@@ -18,6 +18,7 @@ import {
 } from "@mantine/core";
 import type { BuyList as BuyListData, BuyListItem, BrandProduct } from "@/app/actions/buy-list";
 import { PurchaseModal } from "@/components/purchases/PurchaseModal";
+import { METER_COLOR, remainingColor, remainingLabel } from "@/components/stock-meter-ui";
 
 type BuyTarget = {
   id: string;
@@ -27,19 +28,6 @@ type BuyTarget = {
   categoryId: string | null;
   categoryScope: "product" | "category";
 };
-
-const METER_COLOR = { overdue: "alert", soon: "primary", ok: "success", manual: "gray" } as const;
-
-function remainingLabel(item: BuyListItem): string {
-  if (item.daysRemaining === null) return "リストに追加済み";
-  if (item.daysRemaining < 0) return `予定を${-item.daysRemaining}日超過`;
-  if (item.daysRemaining === 0) return "今日まで";
-  return `あと${item.daysRemaining}日`;
-}
-
-function remainingColor(level: BuyListItem["level"]): string {
-  return level === "overdue" ? "alert" : level === "soon" ? "primary" : "dimmed";
-}
 
 export function BuyList({ todayLabel, data }: { todayLabel: string; data: BuyListData }) {
   const [target, setTarget] = useState<BuyTarget | null>(null);
@@ -150,7 +138,7 @@ export function BuyList({ todayLabel, data }: { todayLabel: string; data: BuyLis
                         )}
                       </Group>
                       <Text size="sm" fw={600} c={remainingColor(item.level)}>
-                        {remainingLabel(item)}
+                        {remainingLabel(item.daysRemaining)}
                       </Text>
                     </Group>
 
@@ -168,6 +156,11 @@ export function BuyList({ todayLabel, data }: { todayLabel: string; data: BuyLis
                         {item.cycleWindowDays != null && (
                           <Text size="xs" c="dimmed">
                             サイクル 約{item.cycleWindowDays}日
+                          </Text>
+                        )}
+                        {item.lowestUnitPrice != null && (
+                          <Text size="xs" c="success" fw={600}>
+                            底値 ¥{item.lowestUnitPrice.toFixed(1)}/個
                           </Text>
                         )}
                         {item.categoryName && !item.isCategoryScope && (
@@ -202,6 +195,7 @@ export function BuyList({ todayLabel, data }: { todayLabel: string; data: BuyLis
                   <Table.Th>商品</Table.Th>
                   <Table.Th>残り</Table.Th>
                   <Table.Th>サイクル</Table.Th>
+                  <Table.Th style={{ textAlign: "right" }}>底値/個</Table.Th>
                   <Table.Th>カテゴリ</Table.Th>
                   <Table.Th>購入先</Table.Th>
                   <Table.Th />
@@ -223,7 +217,7 @@ export function BuyList({ todayLabel, data }: { todayLabel: string; data: BuyLis
                     <Table.Td>
                       <Stack gap={4} style={{ minWidth: 120 }}>
                         <Text size="sm" fw={600} c={remainingColor(item.level)}>
-                          {remainingLabel(item)}
+                          {remainingLabel(item.daysRemaining)}
                         </Text>
                         {item.fillRatio !== null && (
                           <Progress
@@ -239,6 +233,17 @@ export function BuyList({ todayLabel, data }: { todayLabel: string; data: BuyLis
                       <Text size="sm" c="dimmed">
                         {item.cycleWindowDays != null ? `約${item.cycleWindowDays}日` : "—"}
                       </Text>
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: "right" }}>
+                      {item.lowestUnitPrice != null ? (
+                        <Text size="sm" fw={600} c="success">
+                          ¥{item.lowestUnitPrice.toFixed(1)}
+                        </Text>
+                      ) : (
+                        <Text size="sm" c="dimmed">
+                          —
+                        </Text>
+                      )}
                     </Table.Td>
                     <Table.Td>
                       <Text size="sm" c="dimmed">

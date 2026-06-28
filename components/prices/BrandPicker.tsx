@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Anchor, Button, Card, Group, Stack, Text } from "@mantine/core";
 import { getBrandHistory, type BrandHistoryItem } from "@/app/actions/price";
 import { buildPurchaseLink } from "@/lib/domain/deeplink";
+import { platformLabel, type Platform } from "@/lib/domain/platform";
 
 // SCR-023 銘柄選択（買い足し）。category scope の購入時、過去銘柄から選んで brand/url を prefill。
 export function BrandPicker({
@@ -44,7 +45,14 @@ export function BrandPicker({
                   {it.brand}
                 </Text>
                 <Text size="xs" c="dimmed">
-                  {it.lastPurchasedAt.slice(0, 10)} · ¥{it.lastPrice.toLocaleString()}
+                  {[
+                    `前回 ${it.lastPurchasedAt.slice(5, 10)}`,
+                    `¥${it.lastPrice.toLocaleString()}`,
+                    it.lastPlatform ? platformLabel(it.lastPlatform as Platform) : null,
+                    `${it.count}回`,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </Text>
               </div>
               <Group gap="xs" wrap="nowrap">

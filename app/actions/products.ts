@@ -7,6 +7,7 @@ import { AppError, ok, toResult, type Result } from "@/lib/common/errors";
 import { assertPositive } from "@/lib/common/number";
 import { addToList, changeType, withdrawToIdle } from "@/lib/domain/product-state";
 import type { ProductStatus, ProductType } from "@/lib/domain/product-state";
+import { computeStockMeter, type UrgencyLevel } from "@/lib/domain/stock-meter";
 
 export type ProductListItem = {
   id: string;
@@ -20,6 +21,11 @@ export type ProductListItem = {
   categoryName: string | null; // 論理削除済みカテゴリは null 扱い
   defaultUnitsPerPack: number | null; // 購入モーダルの初期値用
   purchaseUrl: string | null;
+  // 行メーター（SCR-010）。在庫メーター算出は computeStockMeter。
+  daysRemaining: number | null;
+  fillRatio: number | null;
+  cycleWindowDays: number | null;
+  level: UrgencyLevel;
 };
 
 export type ProductDetail = ProductListItem & {
@@ -64,9 +70,32 @@ export async function listProducts(filter?: {
     const { data, error } = await query;
     if (error) throw new AppError("INTERNAL", error.message);
 
+    const rows = data ?? [];
+
+    // 行メーター用の最終購入日をまとめて取得（N+1 回避）。
+    const today = new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`);
+    const ids = rows.map((p) => p.id);
+    const lastByProduct = new Map<string, string>(); // productId -> 最新 purchased_at
+    if (ids.length > 0) {
+      const { data: logs } = await supabase
+        .from("purchase_logs")
+        .select("product_id, purchased_at")
+        .in("product_id", ids)
+        .order("purchased_at", { ascending: false });
+      for (const l of logs ?? []) {
+        if (!lastByProduct.has(l.product_id)) lastByProduct.set(l.product_id, l.purchased_at);
+      }
+    }
+
     return ok(
-      (data ?? []).map((p) => {
+      rows.map((p) => {
         const cat = p.categories as { name: string; deleted_at: string | null } | null;
+        const lastAt = lastByProduct.get(p.id) ?? null;
+        const meter = computeStockMeter({
+          nextOrderDate: p.next_order_date ? new Date(`${p.next_order_date}T00:00:00Z`) : null,
+          lastPurchasedAt: lastAt ? new Date(lastAt) : null,
+          today,
+        });
         return {
           id: p.id,
           name: p.name,
@@ -79,6 +108,10 @@ export async function listProducts(filter?: {
           categoryName: cat && !cat.deleted_at ? cat.name : null,
           defaultUnitsPerPack: p.default_units_per_pack,
           purchaseUrl: p.purchase_url,
+          daysRemaining: meter.daysRemaining,
+          fillRatio: meter.fillRatio,
+          cycleWindowDays: meter.cycleWindowDays,
+          level: meter.level,
         };
       }),
     );
@@ -113,6 +146,11 @@ export async function getProduct(id: string): Promise<Result<ProductDetail>> {
       categoryName: cat && !cat.deleted_at ? cat.name : null,
       defaultUnitsPerPack: data.default_units_per_pack,
       purchaseUrl: data.purchase_url,
+      // 編集画面はメーター非表示のため既定値（manual）。一覧の行メーターは listProducts で算出。
+      daysRemaining: null,
+      fillRatio: null,
+      cycleWindowDays: null,
+      level: "manual",
       baseUnit: data.base_unit,
       cycleMode: data.cycle_mode as "auto" | "manual",
       perUnitCycleDays: data.per_unit_cycle_days,

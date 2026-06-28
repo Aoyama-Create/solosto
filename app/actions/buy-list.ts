@@ -24,6 +24,7 @@ export type BuyListItem = {
   fillRatio: number | null;
   cycleWindowDays: number | null;
   level: UrgencyLevel;
+  lowestUnitPrice: number | null; // 全体底値（MIN unit_price）。購入記録が無ければ null。
   link: PurchaseLink | null;
   // product subject の購入対象（自身）。
   defaultUnitsPerPack: number | null;
@@ -93,10 +94,11 @@ export async function getBuyList(): Promise<Result<BuyList>> {
     }
 
     const lastByProduct = new Map<string, { purchasedAt: string; purchaseUrl: string | null }>();
+    const lowestByProduct = new Map<string, number>(); // MIN unit_price per product（全体底値）
     if (productIdsForLogs.size > 0) {
       const { data: logs } = await supabase
         .from("purchase_logs")
-        .select("product_id, purchased_at, purchase_url")
+        .select("product_id, purchased_at, purchase_url, unit_price")
         .in("product_id", [...productIdsForLogs])
         .order("purchased_at", { ascending: false });
       for (const l of logs ?? []) {
@@ -106,6 +108,9 @@ export async function getBuyList(): Promise<Result<BuyList>> {
             purchaseUrl: l.purchase_url,
           });
         }
+        const u = Number(l.unit_price);
+        const cur = lowestByProduct.get(l.product_id);
+        if (cur === undefined || u < cur) lowestByProduct.set(l.product_id, u);
       }
     }
 
@@ -131,6 +136,7 @@ export async function getBuyList(): Promise<Result<BuyList>> {
         fillRatio: meter.fillRatio,
         cycleWindowDays: meter.cycleWindowDays,
         level: meter.level,
+        lowestUnitPrice: lowestByProduct.get(p.id) ?? null,
         link: buildPurchaseLink(p.purchase_url ?? last?.purchaseUrl ?? null),
         defaultUnitsPerPack: p.default_units_per_pack,
         purchaseUrl: p.purchase_url,
@@ -143,9 +149,12 @@ export async function getBuyList(): Promise<Result<BuyList>> {
     for (const c of categorySubjects) {
       const ids = catProductIds.get(c.id) ?? [];
       let last: { purchasedAt: string; purchaseUrl: string | null } | null = null;
+      let lowest: number | null = null;
       for (const id of ids) {
         const l = lastByProduct.get(id);
         if (l && (!last || l.purchasedAt > last.purchasedAt)) last = l;
+        const lo = lowestByProduct.get(id);
+        if (lo !== undefined && (lowest === null || lo < lowest)) lowest = lo;
       }
       const meter = computeStockMeter({
         nextOrderDate: asDate(c.next_order_date),
@@ -171,6 +180,7 @@ export async function getBuyList(): Promise<Result<BuyList>> {
         fillRatio: meter.fillRatio,
         cycleWindowDays: meter.cycleWindowDays,
         level: meter.level,
+        lowestUnitPrice: lowest,
         link: buildPurchaseLink(last?.purchaseUrl ?? null),
         defaultUnitsPerPack: null,
         purchaseUrl: null,

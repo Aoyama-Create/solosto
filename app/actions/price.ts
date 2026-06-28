@@ -78,6 +78,7 @@ export type BrandHistoryItem = {
   lastPurchasedAt: string;
   lastPrice: number;
   lastUnitPrice: number;
+  lastPlatform: string | null; // 最新購入のプラットフォーム（other/URL無しは null）
   purchaseUrl: string | null;
   count: number;
 };
@@ -100,7 +101,7 @@ export async function getBrandHistory(categoryId: string): Promise<Result<BrandH
 
     const { data: logs, error } = await supabase
       .from("purchase_logs")
-      .select("brand, price, unit_price, purchase_url, purchased_at")
+      .select("brand, price, unit_price, platform, purchase_url, purchased_at")
       .in("product_id", ids)
       .order("purchased_at", { ascending: false });
     if (error) throw new AppError("INTERNAL", error.message);
@@ -116,6 +117,7 @@ export async function getBrandHistory(categoryId: string): Promise<Result<BrandH
           lastPurchasedAt: l.purchased_at,
           lastPrice: Number(l.price),
           lastUnitPrice: Number(l.unit_price),
+          lastPlatform: l.platform,
           purchaseUrl: l.purchase_url,
           count: 1,
         });

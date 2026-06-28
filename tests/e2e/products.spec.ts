@@ -31,13 +31,16 @@ test("商品の登録→一覧→編集→削除", async ({ page }) => {
     .locator("xpath=ancestor::*[contains(@class,'mantine-Card-root')]")
     .getByRole("link", { name: "編集" })
     .click();
-  await page.getByRole("radio", { name: "単発" }).click();
+  // Mantine SegmentedControl は input が画面外のため、可視ラベルをクリックする。
+  await page.getByText("単発", { exact: true }).click();
   await page.getByRole("button", { name: "保存" }).first().click();
   await expect(page.getByText("商品を編集")).toBeVisible();
 
-  // 削除（confirm を受理）
+  // 削除（confirm を受理）。保存の transition 完了（ボタン再有効化）を待ってからクリック。
   page.on("dialog", (d) => d.accept());
-  await page.getByRole("button", { name: "削除" }).click();
-  await expect(page).toHaveURL(/\/products$/);
+  const del = page.getByRole("button", { name: "削除" });
+  await expect(del).toBeEnabled();
+  await del.click();
+  await expect(page).toHaveURL(/\/products$/, { timeout: 15000 });
   await expect(page.getByText(name)).toHaveCount(0);
 });

@@ -3,7 +3,8 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Badge, Button, Card, Chip, Group, Stack, Text, Title } from "@mantine/core";
+import { Badge, Button, Card, Chip, Group, Progress, Stack, Text, Title } from "@mantine/core";
+import { METER_COLOR, remainingColor, remainingLabel } from "@/components/stock-meter-ui";
 import { addProductToList, withdrawProduct, type ProductListItem } from "@/app/actions/products";
 import type { CategoryView } from "@/app/actions/categories";
 import type { ProductStatus, ProductType } from "@/lib/domain/product-state";
@@ -121,12 +122,25 @@ export function ProductList({
                       銘柄横断
                     </Badge>
                   )}
-                  {p.nextOrderDate && (
+                  {p.cycleWindowDays != null && (
                     <Text size="xs" c="dimmed">
-                      次回 {p.nextOrderDate} ごろ
+                      約{p.cycleWindowDays}日サイクル
+                    </Text>
+                  )}
+                  {p.daysRemaining != null && (
+                    <Text size="xs" fw={600} c={remainingColor(p.level)}>
+                      {remainingLabel(p.daysRemaining)}
                     </Text>
                   )}
                 </Group>
+                {p.fillRatio !== null && (
+                  <Progress
+                    value={p.fillRatio * 100}
+                    color={METER_COLOR[p.level]}
+                    size="sm"
+                    radius="xl"
+                  />
+                )}
               </Stack>
 
               <Group gap="xs" wrap="nowrap">
