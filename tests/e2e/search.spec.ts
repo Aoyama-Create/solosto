@@ -13,6 +13,8 @@ test("キーワード/カテゴリで商品を絞り込める", async ({ page })
   await page.getByLabel("パスワード").fill("password");
   await page.getByRole("button", { name: "登録する" }).click();
   await expect(page).toHaveURL(/\/$/);
+  // signup 直後のリダイレクト沈静化を待ってから goto（競合回避）。
+  await expect(page.getByText("今は買うものなし")).toBeVisible();
 
   const stamp = Date.now();
   const milk = `テスト牛乳_${stamp}`;

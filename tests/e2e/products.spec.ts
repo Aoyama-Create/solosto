@@ -35,12 +35,13 @@ test("商品の登録→一覧→編集→削除", async ({ page }) => {
   await page.getByText("単発", { exact: true }).click();
   await page.getByRole("button", { name: "保存" }).first().click();
   await expect(page.getByText("商品を編集")).toBeVisible();
+  // 基本情報の保存は router.refresh() を伴う（成功メッセージ無し）。
+  // この RSC 再取得が在飛中に削除すると遷移が中断されるため、ネットワーク沈静化を待つ。
+  await page.waitForLoadState("networkidle");
 
-  // 削除（confirm を受理）。保存の transition 完了（ボタン再有効化）を待ってからクリック。
+  // 削除（confirm を受理）。
   page.on("dialog", (d) => d.accept());
-  const del = page.getByRole("button", { name: "削除" });
-  await expect(del).toBeEnabled();
-  await del.click();
-  await expect(page).toHaveURL(/\/products$/, { timeout: 15000 });
+  await page.getByRole("button", { name: "削除" }).click();
+  await expect(page).toHaveURL(/\/products$/);
   await expect(page.getByText(name)).toHaveCount(0);
 });

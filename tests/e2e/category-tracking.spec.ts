@@ -13,6 +13,8 @@ test("カテゴリを category 単位に切替 → 通知設定が出る", async
   await page.getByLabel("パスワード").fill("password");
   await page.getByRole("button", { name: "登録する" }).click();
   await expect(page).toHaveURL(/\/$/);
+  // signup 直後のリダイレクト沈静化を待ってから goto（競合回避）。
+  await expect(page.getByText("今は買うものなし")).toBeVisible();
 
   // カテゴリ管理 → 追加
   await page.goto("/categories");

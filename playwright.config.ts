@@ -17,10 +17,12 @@ export default defineConfig({
       use: { ...devices["iPhone 13"] },
     },
   ],
+  // E2E は本番ビルドに対して実行する。dev のルート単位コンパイル/ハイドレーション遅延で
+  // 「ハイドレーション前クリック→送信が無反応」になる不安定さを避けるため（ローカル実行）。
   webServer: {
-    command: "pnpm dev",
+    command: "pnpm build && pnpm start",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 180_000,
   },
 });

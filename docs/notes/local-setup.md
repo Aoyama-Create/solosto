@@ -74,8 +74,10 @@ pnpm dev                            # http://localhost:3000
 
 ## 6. テスト実行
 
-- ユニット（Vitest）: `pnpm test`（`pnpm test:watch` でウォッチ）
-- E2E（Playwright）: 初回 `pnpm exec playwright install`、以降 `pnpm test:e2e`（dev サーバは自動起動）
+- ユニット（Vitest）: `pnpm test`（`pnpm test:watch` でウォッチ）。include は `lib/**` と `components/**` の `*.test.ts(x)`。
+- E2E（Playwright）: 初回 `pnpm exec playwright install`（WebKit 必須）。以降 `pnpm test:e2e`。
+  - **本番ビルドに対して実行**（webServer=`pnpm build && pnpm start`）。理由: `pnpm dev` のルート単位コンパイルでハイドレーションが遅れ、「ハイドレーション前に送信ボタンを押す→無反応で /signup に留まる」不安定が出るため。本番ビルドなら高速・安定（並列5 workers で全12本 ~30s）。
+  - 全12本を短時間で繰り返すと signup 回数が増える → `supabase/config.toml` の `[auth.rate_limit] sign_in_sign_ups` を緩和済み（ローカルのみ）。変更後は `pnpm supabase stop && start` で反映。
 
 ## 7. つまずきメモ（随時追記）
 
