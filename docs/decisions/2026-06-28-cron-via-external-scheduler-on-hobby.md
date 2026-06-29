@@ -1,7 +1,7 @@
 ---
 created: 2026-06-28
 status: accepted
-tags: [decision]
+tags: [decision, portable]
 supersedes:
 superseded_by:
 ---

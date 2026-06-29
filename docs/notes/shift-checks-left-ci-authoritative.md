@@ -1,6 +1,6 @@
 ---
 created: 2026-06-22
-tags: [principle/workflow]
+tags: [principle/workflow, portable]
 source: "[[decisions/2026-06-22-quality-gate-two-tier]]"
 confidence: medium   # low | medium | high（複数経験で裏付くほど上げる）
 ---

@@ -1,7 +1,7 @@
 ---
 created: 2026-06-22
 status: accepted   # proposed | accepted | superseded
-tags: [decision, tooling, ci, workflow]
+tags: [decision, tooling, ci, workflow, portable]
 supersedes:
 superseded_by:
 ---

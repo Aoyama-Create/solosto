@@ -1,6 +1,6 @@
 ---
 created: 2026-06-22
-tags: [principle/data-model]
+tags: [principle/data-model, portable]
 source: "[[decisions/2026-06-22-derived-values-aggregate-on-read]] / [[decisions/2026-06-22-per-unit-cycle-calculation]] / [[decisions/2026-06-22-tracking-scope-category-cycle]]"
 confidence: high   # low | medium | high（複数経験で裏付くほど上げる。3 ADRで裏付け）
 ---

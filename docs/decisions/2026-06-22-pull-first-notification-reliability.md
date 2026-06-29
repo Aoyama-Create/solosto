@@ -1,7 +1,7 @@
 ---
 created: 2026-06-22
 status: accepted   # proposed | accepted | superseded
-tags: [decision, notification, reliability, pwa]
+tags: [decision, notification, reliability, pwa, portable]
 supersedes:
 superseded_by:
 ---

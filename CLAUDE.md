@@ -151,6 +151,7 @@ COM-016（scope分岐解決）で集計単位を出し分け、COM-050 がこの
 5. **同じ原則が複数 ADR から出たら `confidence` を上げる**。
 6. 断定できない箇所は **`[要確認]`** を付す。
 7. ローカル環境構築・シーダー手順は **`docs/notes/local-setup.md` に集約**し、暗黙知が出たら必ず追記。
+8. 蒸留した原則/ADR が**プロジェクト非依存（他PJ流用可）**なら、その note/decision の `tags` に **`portable`** を付け、**[docs/portable-playbooks.md](docs/portable-playbooks.md) の該当節を追加/更新**する（出典 note が大きく変われば要約も見直す）。棚卸し: `grep -rl "portable" docs/notes docs/decisions` の各ファイルが playbook に節を持つこと。
 - 雛形: `docs/templates/`（adr.md / note.md / mock.md）。歩き方: [docs/README.md](docs/README.md)。
 
 ## 参照ドキュメント

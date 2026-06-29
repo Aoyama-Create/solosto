@@ -1,6 +1,6 @@
 ---
 created: 2026-06-28
-tags: [principle/ops]
+tags: [principle/ops, portable]
 source: "[[decisions/2026-06-28-cron-via-external-scheduler-on-hobby]]"
 confidence: medium
 ---

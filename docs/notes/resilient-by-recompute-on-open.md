@@ -1,6 +1,6 @@
 ---
 created: 2026-06-22
-tags: [principle/reliability]
+tags: [principle/reliability, portable]
 source: "[[decisions/2026-06-22-pull-first-notification-reliability]]"
 confidence: medium   # low | medium | high（複数経験で裏付くほど上げる）
 ---

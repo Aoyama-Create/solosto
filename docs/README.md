@@ -16,7 +16,9 @@
 4. テーマが育ったら maps/ にMOCを作る
 
 ## 入り口
+- まず全体像 → リポジトリ直下の [README.md](../README.md)（概要・クイックスタート・コードマップ）
 - これから参加する人 → notes/local-setup.md
 - 本番公開する → notes/deploy.md（Vercel ＋ Supabase Cloud の手順書）
 - 設計の「なぜ」 → decisions/ を検索
 - 再利用できる学び → notes/
+- 他プロジェクトへ流用 → [portable-playbooks.md](portable-playbooks.md)（`portable` タグの原則を束ねた汎用集）

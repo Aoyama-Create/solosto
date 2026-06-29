@@ -1,6 +1,6 @@
 ---
 created: 2026-06-28
-tags: [principle/ops]
+tags: [principle/ops, portable]
 source: "[[notes/deploy]]"
 confidence: medium
 ---
