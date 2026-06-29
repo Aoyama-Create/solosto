@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Anchor, Badge, Card, Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import { LineChart } from "@mantine/charts";
+import { IconChevronLeft } from "@tabler/icons-react";
 import type { PriceComparison as PriceComparisonData } from "@/app/actions/price";
 
 function yen(n: number): string {
@@ -21,8 +22,13 @@ export function PriceComparison({
   return (
     <Stack gap="lg">
       <div>
-        <Anchor component={Link} href={`/products/${productId}/edit`} size="sm">
-          ← 商品へ
+        <Anchor
+          component={Link}
+          href={`/products/${productId}/edit`}
+          size="sm"
+          style={{ display: "inline-flex", alignItems: "center", gap: 2 }}
+        >
+          <IconChevronLeft size={16} /> 商品へ
         </Anchor>
         <Group gap="xs" mt="xs">
           <Title order={1} size="h2">

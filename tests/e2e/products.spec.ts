@@ -16,7 +16,7 @@ test("商品の登録→一覧→編集→削除", async ({ page }) => {
 
   // 商品タブ → 追加 → 名前だけで登録
   await page.getByRole("navigation").getByRole("link", { name: "商品" }).click();
-  await page.getByRole("link", { name: "＋ 追加" }).click();
+  await page.getByRole("link", { name: "追加" }).click();
   const name = `テスト商品_${Date.now()}`;
   await page.getByLabel("商品名").fill(name);
   await page.getByRole("button", { name: "登録する" }).click();

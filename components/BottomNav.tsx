@@ -54,8 +54,8 @@ export function BottomNav({
               fontWeight: active ? 700 : 500,
             }}
           >
-            <span style={{ position: "relative", fontSize: 20, lineHeight: 1 }}>
-              {tab.icon}
+            <span style={{ position: "relative", display: "inline-flex", lineHeight: 1 }}>
+              <tab.Icon size={22} stroke={1.6} />
               {badge > 0 && (
                 <span
                   style={{

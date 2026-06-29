@@ -52,8 +52,8 @@ export function SideNav({
               background: active ? "var(--mantine-color-brand-0)" : "transparent",
             }}
           >
-            <span style={{ position: "relative", fontSize: 20, lineHeight: 1 }}>
-              {tab.icon}
+            <span style={{ position: "relative", display: "inline-flex", lineHeight: 1 }}>
+              <tab.Icon size={20} stroke={1.6} />
               {badge > 0 && (
                 <span
                   style={{

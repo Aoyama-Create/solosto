@@ -15,6 +15,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
+import { IconTrash } from "@tabler/icons-react";
 import {
   createCategory,
   deleteCategory,
@@ -146,7 +147,7 @@ export function CategoryManager({ categories }: { categories: CategoryView[] }) 
                       }
                     }}
                   >
-                    🗑️
+                    <IconTrash size={18} />
                   </ActionIcon>
                 </Group>
               </Group>

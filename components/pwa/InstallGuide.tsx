@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Alert, Text } from "@mantine/core";
+import { IconShare3 } from "@tabler/icons-react";
 import { isIos, isStandalone, shouldPromptInstall } from "@/lib/pwa/install";
 
 const DISMISS_KEY = "solosto.installGuide.dismissed";
@@ -32,8 +33,8 @@ export function InstallGuide() {
       m="md"
     >
       <Text size="sm">
-        共有ボタン <span aria-hidden>□↑</span> →「ホーム画面に追加」で、アプリのように開けて通知も
-        受け取れます。
+        共有ボタン <IconShare3 size={15} style={{ verticalAlign: "text-bottom" }} aria-hidden />{" "}
+        →「ホーム画面に追加」で、アプリのように開けて通知も受け取れます。
       </Text>
     </Alert>
   );

@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ActionIcon, Anchor, Box, Card, Group, Stack, Table, Text, Title } from "@mantine/core";
+import { IconChevronLeft, IconTrash } from "@tabler/icons-react";
 import { deletePurchase, type PurchaseLogView } from "@/app/actions/purchases";
 
 export function PurchaseHistory({
@@ -29,8 +30,13 @@ export function PurchaseHistory({
   return (
     <Stack gap="md">
       <div>
-        <Anchor component={Link} href={`/products/${productId}/edit`} size="sm">
-          ← 商品へ
+        <Anchor
+          component={Link}
+          href={`/products/${productId}/edit`}
+          size="sm"
+          style={{ display: "inline-flex", alignItems: "center", gap: 2 }}
+        >
+          <IconChevronLeft size={16} /> 商品へ
         </Anchor>
         <Title order={1} size="h2" mt="xs">
           {productName} の購入履歴
@@ -71,7 +77,7 @@ export function PurchaseHistory({
                   loading={pending}
                   onClick={() => remove(l.id)}
                 >
-                  🗑️
+                  <IconTrash size={18} />
                 </ActionIcon>
               </Group>
             </Card>
@@ -113,7 +119,7 @@ export function PurchaseHistory({
                       loading={pending}
                       onClick={() => remove(l.id)}
                     >
-                      🗑️
+                      <IconTrash size={18} />
                     </ActionIcon>
                   </Table.Td>
                 </Table.Tr>

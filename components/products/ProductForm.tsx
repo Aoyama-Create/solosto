@@ -28,6 +28,7 @@ import {
   type ProductDetail,
   type ProductInput,
 } from "@/app/actions/products";
+import { IconCheck } from "@tabler/icons-react";
 import type { CategoryView } from "@/app/actions/categories";
 import type { ProductType } from "@/lib/domain/product-state";
 import { addDays } from "@/lib/common/date";
@@ -112,8 +113,13 @@ export function ProductForm({ categories, product }: Props) {
               placeholder="例: トイレットペーパー"
             />
             {!isEdit && (
-              <Text size="xs" c="dimmed">
-                ✓ 名前だけ入力して、あとから編集でもOK
+              <Text
+                size="xs"
+                c="dimmed"
+                style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+              >
+                <IconCheck size={14} color="var(--mantine-color-success-6)" />
+                名前だけ入力して、あとから編集でもOK
               </Text>
             )}
 

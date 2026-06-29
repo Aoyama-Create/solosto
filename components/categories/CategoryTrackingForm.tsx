@@ -24,6 +24,7 @@ import {
 } from "@/app/actions/category-tracking";
 import type { TrackingScope } from "@/lib/domain/tracking-scope";
 import { addDays } from "@/lib/common/date";
+import { IconChevronLeft } from "@tabler/icons-react";
 
 function toDateStr(days: number): string {
   return addDays(new Date(), days).toISOString().slice(0, 10);
@@ -82,8 +83,13 @@ export function CategoryTrackingForm({ category }: { category: CategoryTracking 
   return (
     <Stack gap="lg">
       <div>
-        <Anchor component={Link} href="/categories" size="sm">
-          ← カテゴリ管理へ
+        <Anchor
+          component={Link}
+          href="/categories"
+          size="sm"
+          style={{ display: "inline-flex", alignItems: "center", gap: 2 }}
+        >
+          <IconChevronLeft size={16} /> カテゴリ管理へ
         </Anchor>
         <Title order={1} size="h2" mt="xs">
           {category.name} の追跡設定

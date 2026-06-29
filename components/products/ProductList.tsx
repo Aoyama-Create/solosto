@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Badge, Button, Card, Chip, Group, Progress, Stack, Text, Title } from "@mantine/core";
+import { IconPlus } from "@tabler/icons-react";
 import { METER_COLOR, remainingColor, remainingLabel } from "@/components/stock-meter-ui";
 import { addProductToList, withdrawProduct, type ProductListItem } from "@/app/actions/products";
 import type { CategoryView } from "@/app/actions/categories";
@@ -59,8 +60,13 @@ export function ProductList({
           <Button component={Link} href="/categories" variant="subtle" size="xs">
             カテゴリ
           </Button>
-          <Button component={Link} href="/products/new" size="xs">
-            ＋ 追加
+          <Button
+            component={Link}
+            href="/products/new"
+            size="xs"
+            leftSection={<IconPlus size={16} />}
+          >
+            追加
           </Button>
         </Group>
       </Group>
@@ -84,7 +90,7 @@ export function ProductList({
 
       <Stack gap="xs">
         {filtered.length === 0 && (
-          <Text c="dimmed">商品がありません。「＋追加」から登録してください。</Text>
+          <Text c="dimmed">商品がありません。右上の「追加」から登録してください。</Text>
         )}
         {filtered.map((p) => (
           <Card key={p.id} shadow="xs" radius="md" p="sm">
