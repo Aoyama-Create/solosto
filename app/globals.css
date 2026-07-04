@@ -15,6 +15,17 @@ body {
   color: var(--solo-ink);
 }
 
+/* iOS Safari は入力欄のフォントが16px未満だと focus 時に自動拡大し戻らない。
+   モバイルでフォーム要素を16pxにして自動ズームを防ぐ（a11y のため maximum-scale は使わない）。 */
+@media (max-width: 47.99em) {
+  input,
+  select,
+  textarea,
+  .mantine-InputBase-input {
+    font-size: 16px;
+  }
+}
+
 /* レスポンシブシェル（Phase 8a）。モバイル=ボトムタブ / PC(≥768px)=左サイドバー。 */
 .side-nav {
   display: none;

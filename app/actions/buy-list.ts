@@ -1,5 +1,6 @@
 "use server";
 
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { requireGroupId } from "@/lib/common/authz";
 import { ok, toResult, type Result } from "@/lib/common/errors";
@@ -43,29 +44,30 @@ function asDate(ymd: string | null): Date | null {
 }
 
 // API-030 買うべき対象取得（商品単位・カテゴリ単位を統合・緊急度順）。status は mutate しない読み取り集計。
-export async function getBuyList(): Promise<Result<BuyList>> {
+// 計算本体は React cache() で 1リクエスト内メモ化（ホームの page/layout が同一結果を共有＝二重計算しない）。
+const computeBuyList = cache(async (): Promise<Result<BuyList>> => {
   try {
     const groupId = await requireGroupId();
     const supabase = await createClient();
     const today = todayStr();
     const todayDate = asDate(today)!;
 
-    // 商品（カテゴリ情報込み）。
-    const { data: products } = await supabase
-      .from("products")
-      .select(
-        "id, name, type, status, next_order_date, purchase_url, default_units_per_pack, category_id, categories(name, tracking_scope, deleted_at)",
-      )
-      .eq("group_id", groupId)
-      .is("deleted_at", null);
-
-    // category-scope カテゴリ（subject）。
-    const { data: cats } = await supabase
-      .from("categories")
-      .select("id, name, status, next_order_date")
-      .eq("group_id", groupId)
-      .eq("tracking_scope", "category")
-      .is("deleted_at", null);
+    // 商品（カテゴリ情報込み）と category-scope カテゴリ（subject）を並列取得（往復1回分短縮）。
+    const [{ data: products }, { data: cats }] = await Promise.all([
+      supabase
+        .from("products")
+        .select(
+          "id, name, type, status, next_order_date, purchase_url, default_units_per_pack, category_id, categories(name, tracking_scope, deleted_at)",
+        )
+        .eq("group_id", groupId)
+        .is("deleted_at", null),
+      supabase
+        .from("categories")
+        .select("id, name, status, next_order_date")
+        .eq("group_id", groupId)
+        .eq("tracking_scope", "category")
+        .is("deleted_at", null),
+    ]);
 
     type Cat = { name: string; tracking_scope: string; deleted_at: string | null } | null;
 
@@ -199,10 +201,14 @@ export async function getBuyList(): Promise<Result<BuyList>> {
   } catch (e) {
     return toResult(e);
   }
+});
+
+export async function getBuyList(): Promise<Result<BuyList>> {
+  return computeBuyList();
 }
 
-// ボトムタブ バッジ用の件数（COM-043 流用）。
+// ボトムタブ バッジ用の件数（COM-043 流用）。ホームでは getBuyList と同一リクエスト＝キャッシュ共有。
 export async function getBuyListCount(): Promise<number> {
-  const res = await getBuyList();
+  const res = await computeBuyList();
   return res.ok ? res.data.count : 0;
 }

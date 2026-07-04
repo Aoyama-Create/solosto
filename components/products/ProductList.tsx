@@ -94,7 +94,7 @@ export function ProductList({
         )}
         {filtered.map((p) => (
           <Card key={p.id} shadow="xs" radius="md" p="sm">
-            <Group justify="space-between" wrap="nowrap">
+            <Stack gap="sm">
               <Stack gap={4} style={{ minWidth: 0 }}>
                 <Group gap="xs" wrap="nowrap">
                   <Text fw={600} truncate>
@@ -149,7 +149,7 @@ export function ProductList({
                 )}
               </Stack>
 
-              <Group gap="xs" wrap="nowrap">
+              <Group gap="xs" justify="flex-end">
                 <Button size="xs" loading={pending} onClick={() => setBuying(p)}>
                   買った
                 </Button>
@@ -187,7 +187,7 @@ export function ProductList({
                   編集
                 </Button>
               </Group>
-            </Group>
+            </Stack>
           </Card>
         ))}
       </Stack>

@@ -81,7 +81,13 @@ npx web-push generate-vapid-keys          # Public Key / Private Key が出力�
 
 4. **Deploy** を押す。ビルド完了で本番 URL（`https://solosto-xxx.vercel.app`）が発行される。
 
-> Hobby（無料）では `vercel.json` に毎時 `crons` があるとデプロイがブロックされる（毎時は Pro 限定）。本リポジトリは **`vercel.json` を置かず**、通知の毎時実行は次の手順 5.5（GitHub Actions）で行う。
+> Hobby（無料）では `vercel.json` に毎時 `crons` があるとデプロイがブロックされる（毎時は Pro 限定）。本リポジトリの `vercel.json` は **`regions` のみ**（`crons` は入れない）＝手順5.6のリージョン共置用。通知の毎時実行は手順 5.5（GitHub Actions）。
+
+## 5.6 関数リージョンを Supabase と共置（★レイテンシ削減）
+本アプリは Server Action / RSC が毎リクエストで Supabase を複数回叩く。**Vercel 関数と Supabase が別リージョンだと各クエリに大陸間往復が乗り、体感が激遅**になる。
+- Supabase は東京（`ap-northeast-1`）で作成済み → **Vercel 関数も東京 `hnd1`** に合わせる。
+- 本リポジトリは `vercel.json` に `{ "regions": ["hnd1"] }` を同梱済み（単一リージョンは Hobby 可）。**変更後は再デプロイで反映**。
+- ダッシュボード派なら **Project → Settings → Functions → Function Region → Tokyo (hnd1)** でも可（どちらか一方）。
 
 ## 5.5 通知バッチの毎時実行（Hobby＝GitHub Actions 外部スケジューラ）
 本リポジトリには `.github/workflows/notify-cron.yml`（毎時 `GET /api/cron` を Bearer 付きで叩く）を同梱済み。**GitHub の Repository secrets を2つ登録**するだけで有効になる。
