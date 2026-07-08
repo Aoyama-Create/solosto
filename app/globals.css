@@ -16,13 +16,14 @@ body {
 }
 
 /* iOS Safari は入力欄のフォントが16px未満だと focus 時に自動拡大し戻らない。
-   モバイルでフォーム要素を16pxにして自動ズームを防ぐ（a11y のため maximum-scale は使わない）。 */
+   モバイルでフォーム要素を16pxにして自動ズームを防ぐ（a11y のため maximum-scale は使わない）。
+   Mantine のクラス指定（PasswordInput の innerInput 等）に詳細度で負けないよう !important で上書き。
+   checkbox/radio（Switch/SegmentedControl の隠し input）はサイズに影響するので除外。 */
 @media (max-width: 47.99em) {
-  input,
+  input:not([type="checkbox"]):not([type="radio"]),
   select,
-  textarea,
-  .mantine-InputBase-input {
-    font-size: 16px;
+  textarea {
+    font-size: 16px !important;
   }
 }
 
